@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Udockers控制台</title>
+    <link href="http://pt.llody.top:1080/7.jpg" type="image/x-icon" rel="shortcut icon" />
+    <link href="/static/layui/css/layui.css" rel="stylesheet" /> <!-- 注意路劲 -->
+    <link href="/static/xterm/xterm.css" rel="stylesheet" type="text/css" />
+    <link href="//at.alicdn.com/t/c/font_4111199_zcutv4ow13q.css" rel="stylesheet" /> <!-- 文件夹图标矢量图-->
+
+    <style>
+        ol li a {
+            background-color: rgba(0, 0, 0, 1) !important;
+        }
+
+        .three_this {
+            background-color: #808080 !important;
+        }
+
+        body {
+            margin: 10px;
+        }
+        .demo-carousel {
+            height: 200px;
+            line-height: 200px;
+            text-align: center;
+        }
+        /* 表格内溢出不隐藏*/
+        .layui-table-cell {
+            height: inherit;
+        }
+
+        .img li img {
+            padding-left: 20px;
+        }
+
+        /*  侧边栏样式  */
+        /* 收缩时的过渡效果 */
+        .layui-side, .layui-side .layui-nav-item a {
+            transition: width 0.2s, padding 0.2s; /* 添加平滑过渡效果 */
+        }
+
+        /* 收缩后的侧边栏样式 */
+        .layui-side.layui-side-shrink {
+            width: 40px; /* 收缩后的宽度，请根据实际情况调整 */
+        }
+
+        /* 收缩后的链接样式 */
+        .layui-side.layui-side-shrink .layui-nav-item a {
+            display: flex; /* 设置flexbox布局 */
+            justify-content: center; /* 水平居中子元素 */
+            align-items: center; /* 垂直居中子元素 */
+            width: 40px; /* 占满整个父元素的宽度 */
+            padding: 0; /* 移除内边距 */
+            overflow: hidden; /* 隐藏溢出内容，防止文字等内容显示 */
+        }
+
+        /* 隐藏收缩侧边栏的文本 */
+        .layui-side.layui-side-shrink .layui-nav-item a span {
+            display: none; /* 隐藏文本 */
+        }
+
+        /* 隐藏收缩侧边栏的子菜单箭头 */
+        .layui-side.layui-side-shrink .layui-nav .layui-nav-more {
+            display: none; /* 隐藏箭头 */
+        }
+
+        /* 确保图标大小不变 */
+        .layui-side.layui-side-shrink .layui-nav-item a i {
+            margin: 0; /* 调整图标周围的空间，可按需设置 */
+        }
+        /* 头部导航栏部分样式*/
+        /* 右侧头部导航栏分割线样式*/
+        .layui-header {
+            position: relative; /* 设置定位上下文 */
+            background-color: white;
+        }
+
+        .layui-header:after {
+            content: ''; /* 伪元素必须有内容，即使是空字符串 */
+            position: absolute; /* 绝对定位，相对于 .layui-header */
+            bottom: 0; /* 定位到底部 */
+            left: 200px; /* 假设logo宽度为220px */
+            right: 0; /* 从左侧的特定位置延伸到右侧 */
+            border-bottom: 1px solid #ddd; /* 分割线样式 */
+            height: 1px; /* 线的厚度 */
+        }
+
+        /* 侧边栏展开时的logo样式 */
+        .layui-logo {
+            width: 200px; /* 与侧边栏展开的宽度相同 */
+            transition: width 0.2s; /* 添加平滑过渡效果 */
+        }
+
+        /* 侧边栏收缩时的logo样式 */
+        .layui-side-shrink .layui-logo {
+            width: 40px; /* 与侧边栏收缩的宽度相同 */
+            overflow: hidden; /* 当内容宽度超出容器宽度时隐藏 */
+            white-space: nowrap; /* 防止内容换行 */
+        }
+
+        /* 头部导航栏内部元素位置的调整 */
+        .layui-nav .layui-layout-left {
+            transition: margin-left 0.2s; /* 添加平滑过渡效果 */
+            position: absolute; /* 绝对定位，基于父元素（.layui-header）的相对定位 */
+            left: 200px; /* 根据侧边栏展开时的宽度调整，这里200px是侧边栏展开时宽度 */
+            right: 0; /* 从左侧的特定位置延伸到右侧 */
+            top: 0; /* 位于顶部 */
+        }
+
+        /* 当侧边栏收缩时，伸缩元素的左边距调整 */
+        .layui-side-shrink .layui-nav .layui-layout-left {
+            left: 40px; /* 调整为侧边栏收缩后的宽度，这里60px应与侧边栏收缩后的宽度一致 */
+        }
+    </style>
+    {% block head_style %}{% endblock %}
+</head>
+
+<body class="layui-layout-body">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header" style="background-color: white;">
+            <a href="#"><div class="layui-logo layui-bg-black">Udockers控制台</div></a> <!-- 返回Docker管理按钮 -->
+                <ul class="layui-nav layui-layout-left">
+                    <li class="layui-nav-item" lay-unselect>
+                        <a ew-event="flexible" title="侧边伸缩"><i class="layui-icon layui-icon-shrink-right" style="color: black;"></i></a>
+                    </li>
+                </ul>
+            <ul class="layui-nav layui-layout-right">
+                {% if request.user.username %}
+                <li class="layui-nav-item layui-hide layui-show-md-inline-block ">
+                    <a href="javascript:;">消息&nbsp;<i class="layui-icon layui-icon-notice" style="color: black;"></i><span
+                            class="layui-badge layui-bg-orange">6</span></a>
+                </li>
+                <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                    <a href="javascript:;" style="color: black;">
+                        <img src="http://pt.llody.top:1080/llody.jpg" class="layui-nav-img" />
+                        {{ request.user.username }}
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="" style="color: black;">基本资料</a></dd>
+                        <dd><a href="" style="color: black;">安全设置</a></dd>
+                        <hr>
+                        <dd><a href="{% url 'logout' %}" style="color: black;">退出</a></dd>
+                    </dl>
+                </li>
+                {% else %}
+                <li class="layui-nav-item"><a href="" style="color: black;">登录</a></li>
+                {% endif %}
+            </ul>
+        
+        </div>
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+                <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                    <!--<li class="layui-nav-item layui-nav-itemed">
+                        <a class="" href="#"><i class="layui-icon layui-icon-console">&nbsp;&nbsp;<span>仪表盘</span></i></a>
+                    </li> -->
+                    <li class="layui-nav-item {% block item-1 %}{% endblock %}">
+                        <a href=""><i class="layui-icon layui-icon-chart-screen">&nbsp;&nbsp;<span>系统信息</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-2 %}{% endblock %}">
+                        <a href=""><i class="layui-icon layui-icon-template-1">&nbsp;&nbsp;<span>镜像管理</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-3 %}{% endblock %}">
+                            <a href=""><i class="layui-icon layui-icon-app">&nbsp;&nbsp;<span>容器管理</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-4 %}{% endblock %}">
+                        <a href=""><i class="layui-icon layui-icon-website">&nbsp;&nbsp;<span>网络管理</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-5 %}{% endblock %}">
+                        <a href=""><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>存储管理</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-6 %}{% endblock %}">
+                        <a href="#"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>事件中心</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-7 %}{% endblock %}">
+                        <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>系统设置</span></i></a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="#" class="{% block item-7-1 %}{% endblock %}">镜像仓库</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item {% block item-8 %}{% endblock %}">
+                        <a href="#"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>用户中心</span></i></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                {% block context %}
+
+                {% endblock %}
+            </div>
+        </div>
+
+        <div class="layui-footer" style="text-align: center">
+            <!-- 底部固定区域 -->
+            Udockers控制台 ©2023 llody Version:0.0.1
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+    <script src="/static/layui/layui.js"></script>
+    {% block custom_js %}{% endblock %}
+    <script>
+        //JS
+        layui.use(['element', 'layer', 'util'], function () {
+
+            var element = layui.element
+                , layer = layui.layer
+                , util = layui.util
+                , $ = layui.$;
+
+            //头部事件
+            util.event('lay-header-event', {
+                //左侧菜单事件
+                menuLeft: function (othis) {
+                    layer.msg('展开左侧菜单的操作', { icon: 0 });
+                }
+                , menuRight: function () {
+                    layer.open({
+                        type: 1
+                        , content: '<div style="padding: 15px;">处理右侧面板的操作</div>'
+                        , area: ['260px', '100%']
+                        , offset: 'rt' //右上角
+                        , anim: 5
+                        , shadeClose: true
+                    });
+                }
+            });
+
+            // 初始化工具提示
+            function initToolTips() {
+                // 只有在侧边栏收缩时才初始化提示
+                if ($('.layui-side').hasClass('layui-side-shrink')) {
+                    // 遍历需要添加提示的元素
+                    $('.layui-side-shrink .layui-nav-item a').each(function(){
+                        var that = $(this);
+                        // 取消之前可能已经绑定的 tips
+                        that.off('mouseenter').off('mouseleave');
+                        // 绑定鼠标悬停事件
+                        that.on('mouseenter', function(){
+                            // 获取文本内容，作为工具提示的内容展示
+                            var tipsText = $(this).find('span').text();
+                            if (tipsText) {
+                                // 显示提示
+                                layer.tips(tipsText, that, {
+                                    tips: [2, '#333'] // 设置工具提示的方向和颜色
+                                });
+                            }
+                        }).on('mouseleave', function(){
+                            // 隐藏提示
+                            layer.closeAll('tips');
+                        });
+                    });
+                } else {
+                    // 在侧边栏展开时移除tips绑定
+                    $('.layui-side .layui-nav-item a').off('mouseenter').off('mouseleave');
+                }
+            }
+
+
+            // 侧边栏展开的宽度
+            var sideWidthExpanded = 200; // 这里设置为实际展开时的宽度
+            // 侧边栏收缩的宽度
+            var sideWidthShrinked = 30; // 这里设置为实际收缩时的宽度
+            // 监听侧边伸缩按钮点击事件
+            $('.layui-nav-item a[ew-event="flexible"]').on('click', function () {
+                var sideMenu = $('.layui-side');
+                var logo = $('.layui-logo');
+                var iconElem = $(this).find('.layui-icon');
+                var headerRight = $('.layui-layout-left');
+                var body = $('.layui-body');
+                var footer = $('.layui-footer');
+                
+                // 切换侧边栏的展开和收缩
+                if (sideMenu.hasClass('layui-side-shrink')) {
+                    sideMenu.removeClass('layui-side-shrink');
+                    iconElem.addClass('layui-icon-shrink-right').removeClass('layui-icon-spread-left');
+                    // 展开logo
+                    logo.html('Udockers控制台').css('width', '200px');
+                    headerRight.css('left', '200px');
+
+                    // 重新设置二级菜单的显示状态
+                    $('.layui-side .layui-nav-item .layui-nav-child').removeAttr('style');
+
+                    // 扩大主体区域
+                    body.css('left', sideWidthExpanded);
+                    footer.css('left', sideWidthExpanded);
+                } else {
+                    sideMenu.addClass('layui-side-shrink');
+                    iconElem.addClass('layui-icon-spread-left').removeClass('layui-icon-shrink-right');
+                    // 收缩logo
+                    logo.html('U').css('width', '40px');
+                    headerRight.css('left', '40px');
+                    
+
+                    // 隐藏所有二级菜单内容
+                    $('.layui-side .layui-nav-item .layui-nav-child').css('display', 'none');
+
+                    // 收缩主体区域
+                    body.css('left', sideWidthShrinked);
+                    footer.css('left', sideWidthShrinked);
+                }
+                // 在侧边栏展开收缩后初始化提示
+                initToolTips();
+                
+                // 触发窗口resize事件，更新表格大小
+                layui.event.call(this, 'element', 'nav({*})', {
+                    elem: sideMenu
+                });
+                // 重置导航的状态
+                element.render('nav', 'test'); // 'test'是导航的lay-filter属性值
+                $(window).trigger('resize');
+
+                // 页面加载完成后初始化一次工具提示
+                $(document).ready(function() {
+                    initToolTips();
+                });
+            });
+
+
+
+        });
+    </script>
+</body>
+
+</html>

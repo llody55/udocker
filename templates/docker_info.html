@@ -1,0 +1,188 @@
+{% extends 'docker_base.html' %}
+{% block title %}docker主机信息{% endblock %}
+{% block item-1 %}layui-nav-itemed{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">首页</a>
+    <a><cite>系统信息</cite></a>
+</span>
+<hr>
+  <div class="layui-card">
+    <div class="layui-card-body">
+    <div class="layui-row">
+      <div class="layui-col-md12">
+        <fieldset class="layui-elem-field layui-field-title">
+          <legend>Docker 主机 信息</legend>
+        </fieldset>
+      </div>
+      <div class="layui-col-md6">
+        <div class="layui-card">
+            <div class="layui-card-body ">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-xs6">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div class="layui-icon layui-icon-template-1"></div>
+                                <div class="layui-text">
+                                    <div class="layui-word-aux">容器数 {{connect.Containers}}</div>
+                                    <div class="layui-word-main"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-xs6">
+                      <div class="layui-card">
+                          <div class="layui-card-body">
+                              <div class="layui-icon layui-icon-template-1"></div>
+                              <div class="layui-text">
+                                  <div class="layui-word-aux">镜像数  {{connect.images}}</div>
+                                  <div class="layui-word-main"></div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+      <div class="layui-col-md6">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-xs6">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div class="layui-icon layui-icon-template-1"></div>
+                                <div class="layui-text">
+                                    <div class="layui-word-aux">CPU {{connect.CPU_info}}核</div>
+                                    <div class="layui-word-main"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-xs6">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div class="layui-icon layui-icon-template-1"></div>
+                                <div class="layui-text">
+                                    <div class="layui-word-aux">内存  {{connect.total_mem}}G</div>
+                                    <div class="layui-word-main"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="layui-col-md6">
+        <div class="layui-card">
+          <div class="layui-card-header">主机信息</div>
+          <div class="layui-card-body layui-bg-gray">
+            <table class="layui-table">
+              <colgroup>
+                <col width="50">
+                <col width="50">
+                <col>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td>主机名</td>
+                  <td>{{ connect.hostname }}</td>
+                </tr>
+                <!-- <tr>
+                  <td>IP地址</td>
+                  <td>{{ connect.address }}</td>
+                </tr> -->
+                <tr>
+                  <td>CPU架构</td>
+                  <td>{{ connect.CPU_arch }}</td>
+                </tr>
+                <tr>
+                  <td>内核版本</td>
+                  <td>{{ connect.kernel_version }}</td>
+                </tr>
+                <tr>
+                  <td>系统类型</td>
+                  <td>{{ connect.OS_type }}</td>
+                </tr>
+                <tr>
+                  <td>系统版本</td>
+                  <td>{{ connect.OS_system }}</td>
+                </tr>
+                <tr>
+                  <td>系统时间</td>
+                  <td>{{ connect.system_time }}</td>
+                </tr>
+                <tr>
+                  <td>GitHub</td>
+                  <td><img alt="Github stars" src="https://img.shields.io/github/stars/llody55/udocker.svg">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img src="https://camo.githubusercontent.com/f8defc7b1662a63895c0de6aa7820bd10b5de2d725b307d76cae5e5c96b9e15c/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f646f636b65722d3132333435363f6c6f676f3d646f636b6572266c6f676f436f6c6f723d666666266c6162656c436f6c6f723d316337616564" alt="docker" data-canonical-src="https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img src="https://camo.githubusercontent.com/80f21d0ca92d526a2f44971a4a22c76f2577b862a0d6fc5d7986055d559053ec/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f646f776e6c6f6164732f68736c722d732f73756e2d70616e656c2f746f74616c2e7376673f6c6f676f3d676974687562" alt="Github downloads" data-canonical-src="https://img.shields.io/github/downloads/llody55/udocker/total.svg?logo=github" style="max-width: 100%;">
+                  </td>
+                </tr>
+                <tr>
+                  <td>联系方式</td>
+                  <td>
+                    <img alt="QQ" src="https://img.shields.io/badge/QQ-745719408-blue">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img alt="微信公众号" src="https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-%E7%AC%A8%E9%B8%9F%E8%BF%90%E7%BB%B4-brightgreen" style="max-width: 100%;">&nbsp;&nbsp;&nbsp;&nbsp;
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md6">
+        <div class="layui-card">
+          <div class="layui-card-header">Docker信息</div>
+          <div class="layui-card-body layui-bg-gray">
+            <table class="layui-table">
+              <colgroup>
+                <col width="50">
+                <col width="50">
+                <col>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td>服务端版本</td>
+                  <td>{{ connect.server_version }}</td>
+                </tr>
+                <tr>
+                  <td>客户端版本</td>
+                  <td>{{ connect.client_version }}</td>
+                </tr>
+                <tr>
+                  <td>Go Version</td>
+                  <td>{{ connect.go_version }}</td>
+                </tr>
+                <tr>
+                  <td>Docker Root Dir</td>
+                  <td>{{ connect.docker_dir }}</td>
+                </tr>
+                <tr>
+                  <td>组件信息</td>
+                  <td>
+                    {% for c in connect.data %}
+                      {{ c.components }} <br/>
+                    {% endfor %}
+                  </td>
+                  
+                </tr>
+                <tr>
+                  <td>平台信息</td>
+                  <td>{{ connect.Platform }}</td>
+                </tr>
+                <tr>
+                  <td>许可证信息</td>
+                  <td>{{ connect.Product_License }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  {% endblock %}
