@@ -158,31 +158,34 @@
                         <a class="" href="#"><i class="layui-icon layui-icon-console">&nbsp;&nbsp;<span>仪表盘</span></i></a>
                     </li> -->
                     <li class="layui-nav-item {% block item-1 %}{% endblock %}">
-                        <a href=""><i class="layui-icon layui-icon-chart-screen">&nbsp;&nbsp;<span>系统信息</span></i></a>
+                        <a href="{% url 'index' %}"><i class="layui-icon layui-icon-chart-screen">&nbsp;&nbsp;<span>系统信息</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-2 %}{% endblock %}">
-                        <a href=""><i class="layui-icon layui-icon-template-1">&nbsp;&nbsp;<span>镜像管理</span></i></a>
+                        <a href="{% url 'docker_image_info' %}"><i class="layui-icon layui-icon-template-1">&nbsp;&nbsp;<span>镜像管理</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-3 %}{% endblock %}">
-                            <a href=""><i class="layui-icon layui-icon-app">&nbsp;&nbsp;<span>容器管理</span></i></a>
+                            <a href="{% url 'docker_container'%}"><i class="layui-icon layui-icon-app">&nbsp;&nbsp;<span>容器管理</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-4 %}{% endblock %}">
-                        <a href=""><i class="layui-icon layui-icon-website">&nbsp;&nbsp;<span>网络管理</span></i></a>
+                        <a href="{% url 'docker_network_info' %}"><i class="layui-icon layui-icon-website">&nbsp;&nbsp;<span>网络管理</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-5 %}{% endblock %}">
-                        <a href=""><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>存储管理</span></i></a>
+                        <a href="{% url 'docker_volumes_info' %}"><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>存储管理</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-6 %}{% endblock %}">
-                        <a href="#"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>事件中心</span></i></a>
+                        <a href="{% url 'docker_event_info' %}"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>事件中心</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-7 %}{% endblock %}">
                         <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>系统设置</span></i></a>
                         <dl class="layui-nav-child">
-                            <dd><a href="#" class="{% block item-7-1 %}{% endblock %}">镜像仓库</a></dd>
+                            <dd><a href="{% url 'docker_registries_info' %}" class="{% block item-7-1 %}{% endblock %}">镜像仓库</a></dd>
                         </dl>
                     </li>
                     <li class="layui-nav-item {% block item-8 %}{% endblock %}">
-                        <a href="#"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>用户中心</span></i></a>
+                        <a href="#"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>用户中心</span></i></a>
+                    </li>
+                    <li class="layui-nav-item {% block item-9 %}{% endblock %}">
+                        <a href="#"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>关于</span></i></a>
                     </li>
                 </ul>
             </div>

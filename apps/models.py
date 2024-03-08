@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from cryptography.fernet import Fernet
 
 # Create your models here.
 # 自定义权限模型
@@ -78,3 +79,38 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             if role.permissions.filter(codename=perm).exists():
                 return True
         return False
+
+# docker镜像仓库表
+class Registries(models.Model):
+    registries_name = models.CharField(max_length=100,verbose_name="仓库名称",unique=True,blank=True)
+    registries_url = models.URLField(max_length=100,verbose_name="仓库地址",unique=True)
+    registries_auth = models.BooleanField(default=False,verbose_name="认证状态")
+    registries_username = models.CharField(max_length=100,verbose_name="仓库用户",blank=True)
+    registries_password = models.CharField(max_length=200,verbose_name="仓库密码",blank=True)
+    encryption_key = models.CharField(max_length=255, verbose_name="加密密钥", blank=True)
+    registries_remarks = models.TextField(verbose_name="备注",blank=True)
+    registries_createdat = models.DateTimeField(auto_now=True, verbose_name="创建时间", blank=True)
+
+    def set_password(self, raw_password):
+        key = Fernet.generate_key()  # 生成密钥
+        self.encryption_key = key.decode()  # 保存密钥为字符串
+        cipher_suite = Fernet(key)
+        self.registries_password = cipher_suite.encrypt(raw_password.encode()).decode()  # 保存加密后的密码为字符串
+
+    def get_password(self):
+        cipher_suite = Fernet(self.encryption_key.encode())
+        return cipher_suite.decrypt(self.registries_password.encode()).decode()  # 解密密码
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # 新增默认加密
+            self.set_password(self.registries_password)
+        else:  # 对旧数据更新加密信息
+            pass
+        super(Registries, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.registries_name
+
+    class Meta:
+        verbose_name = '镜像仓库'
+        verbose_name_plural = '镜像仓库'

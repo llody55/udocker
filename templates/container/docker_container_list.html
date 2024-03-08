@@ -1,0 +1,581 @@
+{% extends 'docker_base.html' %}
+{% block title %}容器管理{% endblock %}
+{% block item-3 %}layui-nav-itemed{% endblock %}
+{% block head_style %}
+<style>
+    /* 刷新按钮样式 */
+    .custom-refresh-btn {
+        float: right;
+        background-color: white;
+        border: 1px solid #e6e6e6;
+        color: #333;
+        border-radius: 2px;
+    }
+
+    .custom-refresh-btn:hover {
+        background-color: #f2f2f2; /* 鼠标悬浮时的背景色 */
+        cursor: pointer; /* 鼠标悬浮时变成手形图标 */
+    }
+    /* 保留水平行边框，移除垂直列边框 */
+    .layui-table td, .layui-table th {
+        border-left: none !important;
+        border-right: none !important;
+    }
+    /* 为了保留水平行边框，确保行的顶部和底部边框保持 */
+    .layui-table tr {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+    .layui-table th {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+</style>
+{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">首页</a>
+    <a><cite>Docker容器管理</cite></a>
+</span>
+<hr>
+<div class="layui-card">
+    {% csrf_token %}
+    <div class="layui-card-body">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
+                    style="width: 150px;float: left">
+                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                </button>
+            </div>
+
+            <div class="layui-col-md12">
+                <table class="layui-hide" id="demo" lay-filter="test"></table>
+                <!-- 自定义头部工具 -->
+                <script type="text/html" id="demoTable">
+                    {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">创建</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理容器</button>
+                    {% endif %}
+                </script>
+
+
+                <!--  行工具 -->
+                <script type="text/html" id="barDemo">
+                    {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>详情</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>日志</a>
+                        <!-- target="_blank" 表示跳转新窗口打开，默认是 _self 当前窗口打开-->
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-black" lay-event="terminal" id="terminal"><i class="layui-icon layui-icon-code-circle" target="_blank"></i>终端</a>
+                        <a class="layui-btn layui-btn-xs" lay-event="more">更多<i class="layui-icon layui-icon-down"></i></a>
+                    {% else %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>详情</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>日志</a>
+                    {% endif %}
+                </script>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block custom_js %}
+<script>
+    layui.use('table', function () {
+        var form = layui.form;
+        var table = layui.table;
+        //var $ = layui.jquery;
+        var layer = layui.layer;
+        var util = layui.util;
+        var $ = layui.$;
+        var dropdown = layui.dropdown //下拉菜单
+        layer.load();
+        setTimeout(function () {
+            layer.closeAll('loading');
+        }, 2000);
+        table.render({
+            elem: '#demo' // 选择table元素
+            , url: "{% url 'docker_container_api' %}"  //数据接口, namespace值从当前session中获取
+            , page: true //开启分页
+            , toolbar: '#demoTable'
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }]
+            , cols: [[ //表头
+                { type: 'checkbox', fixed: 'left' }   //全选按钮
+                , { field: 'id', title: '容器ID', sort: true }
+                , { field: 'name', title: '容器名称<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
+                , { field: 'image', title: '容器镜像', sort: true }
+                , { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
+                , { field: 'status', title: '运行状态', width: 100, templet: statusFormat }
+                , { field: 'restart_count', title: '重启次数', width: 100, templet: restartFormat}
+                // , { field: 'restart_switch', title: '重启策略', width: 100 }
+                , {
+                    field: 'restart_switch', title: '重启策略', templet: function (d) {
+                        // 根据容器的重启策略设置开关的初始状态
+                        var checked = d.restart_switch ? 'checked' : '';
+                        return '<input type="checkbox" name="restart" lay-skin="switch" lay-filter="restartFilter" lay-text="ON|OFF" ' + checked + ' data-id="' + d.id + '">';
+                    }, width: 110
+                }
+                , { field: 'ports_data', title: '端口映射', width: 150, templet: portsFormat }
+                , { field: 'create_time', title: '创建时间', sort: true }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 300, align: "center" }
+            ]],
+            id: 'TT',
+            done: function(res, curr, count) {
+                // 这里可以遍历所有的数据
+                $('table tr').each(function() {
+                    // 获取当前行的status数据
+                    var status = $(this).find('.layui-table-cell .status-disabled');
+                    // 如果status的值表示非success状态（即存在status-disabled类的元素）
+                    if (status.length > 0) {
+                        // 禁用当前行的控制台按钮
+                        $(this).find('a[lay-event="terminal"]').addClass('layui-btn-disabled').attr('disabled', 'disabled');
+                    }
+                })
+            }
+        });
+        // 健康状态格式化
+        function isrunningFormat(d) {
+            result = "";
+            if (d.isrunning == true) {
+                //给返回值加个样式
+                result = '<span class="layui-badge layui-bg-green">健康</span>'
+                return result
+            } else {
+                result = '<span class="layui-badge layui-bg-red">不健康</span>'
+                return result
+            }
+        }
+        // 运行状态格式化
+        function statusFormat(d) {
+            result = "";
+            if (d.status == "running") {
+                //给返回值加个样式
+                result = '<span class="layui-badge layui-bg-green">运行中</span>'
+                return result
+            } else {
+                result = '<span class="layui-badge layui-bg-red status-disabled">已停止</span>'
+                return result
+            }
+        }
+        // 端口格式化
+        function portsFormat(d) {
+            result = "";
+            if (d.ports_data) {
+                //给返回值加个样式
+                for (let key in d.ports_data) {
+                    data = d.ports_data[key];
+                    if (data.isport == true) {
+                        result += '<span class="layui-badge layui-bg-green">' + data.ports + '</span>' + ': <span class="layui-badge layui-bg-red">未映射</span>'
+                    } else {
+                        result += '<span class="layui-badge layui-bg-green">' + data.ports + '</span>' + ':' + '<span class="layui-badge layui-bg-green">' + data.host_port + '</span>'
+                    }
+                }
+                return result
+            } else {
+                return "None"
+            }
+        }
+
+        function restartFormat(d) {
+            result = "";
+            if (d.restart_count > "10") {
+                //给返回值加个样式
+                result = '<span class="layui-badge layui-bg-red">'+ d.restart_count +'</span>'
+                return result
+            }else if (d.restart_count == "0") {
+                //给返回值加个样式
+                result = '<span class="layui-badge layui-bg-green">'+ d.restart_count +'</span>'
+                return result
+            }else {
+                result = '<span class="layui-badge layui-bg-orange"> '+ d.restart_count +'</span>'
+                return result
+            }
+
+        }
+
+        // 更新渲染表单元素
+        form.render();
+        // 监听开关按钮事件
+        form.on('switch(restartFilter)', function (obj) {
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var containerId = obj.elem.dataset.id; // 获取当前行容器的ID
+            var newState = obj.elem.checked; // 获取当前开关的新状态
+
+            // AJAX 请求更新容器重启策略
+            $.ajax({
+                url: '{% url "docker_container_restart_policy_api" %}', // 这里替换成你的API路径
+                method: 'POST',
+                data: {
+                    container_id: containerId,
+                    restart_policy: newState ? 'always' : 'no' // 根据状态设置重启策略
+                },
+                headers: { 'X-CSRFToken': csrf_token },
+                success: function (result) {
+                    if (result.code == '0') {
+                        layer.msg(result.msg, { icon: 6 })
+                    } else {
+                        layer.msg(result.msg, { icon: 5 })
+                    }
+                },
+                error: function (xhr) {
+                    // 处理错误情况
+                    obj.elem.checked = !newState; // 如果失败，还原开关状态
+                    form.render('checkbox'); // 重新渲染
+                    layer.msg('重启策略更新失败');
+                }
+            });
+        });
+
+
+
+
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            var username = '{{ username }}';  //获取session中登陆的用户名
+            // 自定义下拉菜单模板
+            var template = `
+            <div class="layui-dropdown-menu">
+                <a class="layui-dropdown-item {{d.color}}" lay-event="{{d.event}}">{{d.title}}</a>
+            </div>`;
+            if (obj.event === 'auths') {
+                layer.msg("查询中，请稍等")
+                // 显示 loading 效果
+                var loadingIndex = layer.load(3);
+                $.ajax({
+                    url: '{% url "docker_container_info" %}?name=' + data.name,
+                    success: function (response) {
+                        // 关闭 loading 效果
+                        layer.close(loadingIndex);
+                        layer.open({
+                            type: 2,
+                            offset: 'r',
+                            anim: 'slideLeft', // 从右往左
+                            area: ['520px', '100%'],
+                            closeBtn: false,
+                            title: "容器详情",
+                            shift: 2,
+                            shade: 0.2,
+                            shadeClose: true,
+                            id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
+                            content: '{% url "docker_container_info" %}?name=' + data.name
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        // 关闭 loading 效果
+                        layer.close(loadingIndex);
+                        if (xhr.status === 500) {
+                            layer.alert("连接失败，请检查连接地址或者网络。", { icon: 2 });
+                        } else if (xhr.status === 400) {
+                            layer.alert("单位字符串转换错误，请确认是否有JOB型容器未正常运行!", { icon: 5 });
+                        }else {
+                            layer.alert("发生错误，请稍后重试。", { icon: 5 });
+                        }
+                    }
+                })
+            } else if (obj.event === 'logs') {
+                containers = data['id'];
+                layer.open({
+                    type: 2,
+                    offset: 'b',
+                    anim: 'slideUp', // 从下往上
+                    area: ['100%', '460px'],
+                    title: '容器日志',
+                    maxmin: true, // 允许全屏最小化
+                    shade: 0.1,
+                    shadeClose: true,
+                    id: 'ID-demo-layer-direction-b',
+                    content: '{% url "docker_logs" %}?name=' + data.name + '&container_id=' + data.id + '&containers=' + containers,
+                    success: function(layero) {
+                        // 初始化时隐藏最小化按钮
+                        layero.find('.layui-layer-min').hide();
+                    },
+                    // 当弹窗从最大化还原时触发
+                    full: function(layero) {
+                        // 最大化时也确保最小化按钮被隐藏
+                        layero.find('.layui-layer-min').hide();
+                    },
+                    restore: function(layero) {
+                        // 还原时同样确保最小化按钮被隐藏
+                        layero.find('.layui-layer-min').hide();
+                    }
+                });
+            } else if (obj.event === 'terminal') {
+                containers = data['id'];
+                layer.open({
+                    type: 2,
+                    offset: 'b',
+                    anim: 'slideUp', // 从下往上
+                    area: ['100%', '460px'],
+                    title: "容器终端",
+                    maxmin: true, // 允许全屏最小化
+                    shade: 0.1,
+                    shadeClose: true,
+                    id: 'ID-demo-layer-direction-b',
+                    content: '{% url "docker_terminal" %}?name=' + data.name + '&container_id=' + data.id + '&containers=' + containers,
+                    success: function(layero) {
+                        // 初始化时隐藏最小化按钮
+                        layero.find('.layui-layer-min').hide();
+                    },
+                    // 当弹窗从最大化还原时触发
+                    full: function(layero) {
+                        // 最大化时也确保最小化按钮被隐藏
+                        layero.find('.layui-layer-min').hide();
+                    },
+                    restore: function(layero) {
+                        // 还原时同样确保最小化按钮被隐藏
+                        layero.find('.layui-layer-min').hide();
+                    }
+                });
+                // window.location.href = '{% url "docker_terminal" %}?name=' + data.name + '&container_id='+ data.id + '&containers=' + containers
+            } else if (obj.event === 'more') {
+                //下拉菜单
+                dropdown.render({
+                    elem: '#more'
+                    , elem: this //触发事件的 DOM 对象
+                    , show: true //外部事件触发即显示
+                    , data: [{
+                        title: '启动'
+                        , id: 'start'
+                        , templet: '<span style="color: green;">启动</span>'
+                    }, {
+                        title: '停止'
+                        , id: 'stop'
+                        , templet: '<span style="color: red;">停止</span>'
+                    }, {
+                        title: '重启'
+                        , id: 'restart'
+                        , templet: '<span style="color: lime;">重启</span>'
+                    }, {
+                        title: '编辑'
+                        , id: 'edit'
+                        , templet: '<span style="color: blue;">编辑</span>'
+                    }, {
+                        title: '删除'
+                        , id: 'del'
+                        , templet: '<span style="color: fuchsia;">删除</span>'
+                    }]
+                    , click: function (menudata) {
+                        if (menudata.id === 'del') {
+                                layer.confirm('真的要删除<span style="color: red">' + data.name + '</span>这个docker吗？</br><span style="color: red">请注意，此删除为真正意义上的删除!!!</span>', function (index) {
+                                    $.ajax({
+                                        type: "POST",
+                                        url: '{% url "docker_container_delete_api" %}?name=' + data.name,
+                                        data: data,
+                                        headers: { 'X-CSRFToken': csrf_token },
+                                        success: function (result) {
+                                            if (result.code == '0') {
+                                                obj.del();  // 临时删除当前页面记录
+                                                layer.msg(result.msg, { icon: 6 })
+                                            } else {
+                                                layer.msg(result.msg, { icon: 5 })
+                                            }
+                                        },
+                                        error: function () {
+                                            layer.msg("服务器接口异常！", { icon: 5 })
+                                        }
+                                    })
+                                    layer.close(index);
+                                });
+                        } else if (menudata.id === 'edit') {
+
+                            layer.msg('编辑操作，当前行 ID:' + data.id);
+                        } else if (menudata.id === 'start') {
+                            // 显示 loading 效果
+                            var loadingIndex = layer.load(2);
+                            layer.confirm('真的要启动<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                $.ajax({
+                                    type: "POST",
+                                    url: '{% url "docker_container_start_api" %}?name=' + data.name,
+                                    data: data,
+                                    headers: { 'X-CSRFToken': csrf_token },
+                                    success: function (result) {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        if (result.code == '0') {
+                                            layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                                // 重新加载页面
+                                                window.location.reload()
+                                            });
+                                        } else {
+                                            layer.msg(result.msg, { icon: 5 })
+                                        }
+                                    },
+                                    error: function () {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        layer.msg("服务器接口异常！", { icon: 5 })
+                                    }
+                                })
+                                layer.close(index);
+                            });
+                        } else if (menudata.id === 'stop') {
+                            // 显示 loading 效果
+                            var loadingIndex = layer.load(2);
+                            // 弹框询问
+                            layer.confirm('真的要停止<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                $.ajax({
+                                    type: "POST",
+                                    url: '{% url "docker_container_stop_api" %}?name=' + data.name,
+                                    data: data,
+                                    headers: { 'X-CSRFToken': csrf_token },
+                                    success: function (result) {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        // 状态码
+                                        if (result.code == '0') {
+                                            layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                                // 重新加载页面
+                                                window.location.reload()
+                                            });
+                                        } else {
+                                            layer.msg(result.msg, { icon: 5 })
+                                        }
+                                    },
+                                    error: function () {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        layer.msg("服务器接口异常！", { icon: 5 })
+                                    }
+                                })
+                                layer.close(index);
+                            });
+                        } else if (menudata.id === 'restart') {
+                            // 显示 loading 效果
+                            var loadingIndex = layer.load(2);
+                            layer.confirm('真的要重启<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                $.ajax({
+                                    type: "POST",
+                                    url: '{% url "docker_container_restart_api" %}?name=' + data.name,
+                                    data: data,
+                                    headers: { 'X-CSRFToken': csrf_token },
+                                    success: function (result) {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        if (result.code == '0') {
+                                            layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                                // 重新加载页面
+                                                window.location.reload()
+                                            });
+                                        } else {
+                                            layer.msg(result.msg, { icon: 5 })
+                                        }
+                                    },
+                                    error: function () {
+                                        // 关闭 loading 效果
+                                        layer.close(loadingIndex);
+                                        layer.msg("服务器接口异常！", { icon: 5 })
+                                    }
+                                })
+                                layer.close(index);
+                            });
+                        }
+                    }
+                    , align: 'right' //右对齐弹出（v2.6.8 新增）
+                    , style: 'box-shadow: 1px 1px 10px rgb(0 0 0 / 12%);' //设置额外样式
+                })
+            }
+        });
+
+        //监听自定义头工具栏事件
+        table.on('toolbar(test)', function (obj) {
+            switch (obj.event) {
+                case 'add':
+                    layer.open({
+                        type: 2,
+                        offset: 'r',
+                        anim: 'slideLeft', // 从右往左
+                        area: ['600px', '100%'],
+                        closeBtn: false,
+                        title: "创建容器",
+                        shift: 2,
+                        shade: 0.2,
+                        shadeClose: true,
+                        id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
+                        content: '{% url "docker_container_create" %}'
+                    });
+                    break;
+                case 'clear':
+                    layer.msg("臣尽力在做了，莫慌",{icon:5})
+                    break
+            }
+        })
+
+        // 监听刷新按钮点击事件
+        $('#refreshBtn').on('click', function () {
+            //获取当前页码
+            var currPage = $('.layui-laypage-em').next().html();
+                // 进行刷新操作
+                table.reload('TT', {
+                    url: "{% url 'docker_container_api' %}",
+                    page: { curr: currPage }//刷新当前页码
+                });
+        });
+
+        // 监听搜索事件
+        $(document).on('click', '#searchBtn', function () {
+            var input_val = $('.layui-input').val();
+            // var input_val = $("input[name='name']").val();
+            table.reload('TT', {
+                where: {   //设定异步数据接口的额外参数，任意设置
+                    search_key: input_val
+                },
+                page: {
+                    curr: 1  //重新从第 1 页开始
+                }
+            })
+        });
+        // 单元格编辑事件,重命名容器名称
+        table.on('edit(test)', function (obj) {
+            var field = obj.field; // 得到字段
+            var value = obj.value; // 得到修改后的值
+            var data = obj.data; // 得到所在行所有键值
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            console.log(data.name)
+            // 值的校验
+            if (field === 'name') {
+                if (/^[a-z0-9][a-z0-9_-]{0,253}[a-z0-9]$/.test(obj.value)) {
+                    $.ajax({
+                        type: "POST",
+                        url: '{% url "docker_container_rename_api" %}?name=' + data.name + '&id=' + data.id,
+                        data: data,
+                        headers: { 'X-CSRFToken': csrf_token },
+                        success: function (result) {
+                            if (result.code == '0') {
+                                layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                    // 重新加载页面
+                                    window.location.reload()
+                                });
+                            } else {
+                                layer.msg(result.msg, { icon: 5 })
+                                return obj.reedit();
+                            }
+                        },
+                        error: function () {
+                            layer.msg("服务器接口异常！", { icon: 5 })
+                        }
+                    })
+                } else {
+                    layer.tips('输入的容器名称格式不正确，请重新编辑', this, { tips: 1 });
+                    return obj.reedit(); // 重新编辑 -- v2.8.0 新增
+                }
+
+            }
+            // 编辑后续操作，如提交更新请求，以完成真实的数据更新
+            // …
+        });
+
+    })
+
+</script>
+
+{% endblock %}

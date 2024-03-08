@@ -1,0 +1,236 @@
+{% extends 'docker_base.html' %}
+{% block title %}镜像管理{% endblock %}
+{% block item-2 %}layui-nav-itemed{% endblock %}
+{% block head_style %}
+<style>
+    /* 刷新按钮样式 */
+    .custom-refresh-btn {
+        float: right;
+        background-color: white;
+        border: 1px solid #e6e6e6;
+        color: #333;
+        border-radius: 2px;
+    }
+
+    .custom-refresh-btn:hover {
+        background-color: #f2f2f2; /* 鼠标悬浮时的背景色 */
+        cursor: pointer; /* 鼠标悬浮时变成手形图标 */
+    }
+    /* 保留水平行边框，移除垂直列边框 */
+    .layui-table td, .layui-table th {
+        border-left: none !important;
+        border-right: none !important;
+    }
+    /* 为了保留水平行边框，确保行的顶部和底部边框保持 */
+    .layui-table tr {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+    .layui-table th {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+</style>
+{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">首页</a>
+    <a><cite>Docker镜像管理</cite></a>
+</span>
+<hr>
+<div class="layui-card">
+    {% csrf_token %}
+    <div class="layui-card-body">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
+                    style="width: 150px;float: left">
+                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                </button>
+            </div>
+
+            <div class="layui-col-md12">
+                <table class="layui-hide" id="demo" lay-filter="test"></table>
+                <!-- 自定义头部工具 -->
+                <script type="text/html" id="demoTable">
+                    {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">拉取镜像</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理镜像</button>
+                    {% endif %}
+                </script>
+                <!--  行工具 -->
+                <script type="text/html" id="barDemo">
+                    {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">查看</a>
+                        <a class="layui-btn layui-btn-xs" lay-event="auth" id="push">推送</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="auth" id="export">导出</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="delete" id="delete"><i class="layui-icon layui-icon-delete"></i>删除</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="forcedelete" id="forcedelete"><i class="layui-icon layui-icon-delete"></i>强制删除</a>
+                    {% else %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">查看</a>
+                    {% endif %}
+                </script>
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block custom_js %}
+<script>
+    layui.use('table', function () {
+        var form = layui.form;
+        var table = layui.table;
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var dropdown = layui.dropdown //下拉菜单
+        layer.load();
+        setTimeout(function () {
+            layer.closeAll('loading');
+        }, 2000);
+        table.render({
+            elem: '#demo' // 选择table元素
+            , url: "{% url 'docker_images_api' %}"  //数据接口, namespace值从当前session中获取
+            , page: true //开启分页
+            , loading: true  // 分页loading
+            , toolbar: '#demoTable'
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }]
+            , cols: [[ //表头
+                { type: 'checkbox', fixed: 'left' }   //全选按钮
+                , { field: 'image_id', title: '镜像ID', sort: true }
+                , { field: 'image_tag', title: '镜像 Tag', sort: true } //hide:true 隐藏某一列的信息
+                , { field: 'image_in_use', title: '占用情况', sort: true ,templet: image_in_useFormat}
+                , { field: 'image_size', title: '镜像大小', sort: true }
+                , { field: 'image_create_time', title: '创建时间', sort: true }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 340, align: "center" }
+            ]],
+            id: 'TT',
+        });
+
+        // 占用情况
+        function image_in_useFormat(d) {
+            if (d.image_in_use == false) {
+                //给返回值加个样式
+                return '<span class="layui-badge layui-bg-orange">Unused</span>'
+            }else{
+                return ''
+            }
+        }
+
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            if (obj.event === 'auth') {
+                layer.msg("臣尽力在做了，莫慌",{icon:5})
+            } else if (obj.event === 'delete') {
+                layer.confirm('真的要删除<span style="color: red">【' + data.image_tag + '】</span>这个镜像吗？</br><span style="color: red">请注意，此删除为真正意义上的删除!!!</span>', function (index) {
+                                $.ajax({
+                                    type: "DELETE",
+                                    url: '{% url "docker_images_api" %}?image_id=' + data.image_id,
+                                    data: data,
+                                    headers: { 'X-CSRFToken': csrf_token },
+                                    success: function (result) {
+                                        if (result.code == '0') {
+                                            obj.del();  // 临时删除当前页面记录
+                                            layer.msg(result.msg, { icon: 6 })
+                                        } else {
+                                            layer.msg(result.msg, { icon: 5 })
+                                        }
+                                    },
+                                    error: function () {
+                                        layer.msg("服务器接口异常！", { icon: 5 })
+                                    }
+                                })
+                                layer.close(index);
+                            });
+            }else if (obj.event === 'forcedelete') {
+                layer.confirm('真的要<span style="color: red">强制</span>删除<span style="color: red">【' + data.image_tag + '】</span>这个镜像吗？</br><span style="color: red">请注意，此删除将包含子镜像</span>', function (index) {
+                    $.ajax({
+                        type: "FORCEDELETE",
+                        url: '{% url "docker_images_api" %}?image_id=' + data.image_id,
+                        data: data,
+                        headers: { 'X-CSRFToken': csrf_token },
+                        success: function (result) {
+                            if (result.code == '0') {
+                                obj.del();  // 临时删除当前页面记录
+                                layer.msg(result.msg, { icon: 6 })
+                            } else {
+                                layer.msg(result.msg, { icon: 5 })
+                            }
+                        },
+                        error: function () {
+                            layer.msg("服务器接口异常！", { icon: 5 })
+                        }
+                    })
+                    layer.close(index);
+                });
+            }else if (obj.event === 'push'){
+                layer.msg("臣尽力在做了，莫慌",{icon:5})
+            }else if (obj.event === 'export'){
+                layer.msg("臣尽力在做了，莫慌",{icon:5})
+            }
+        });
+
+        //监听自定义头工具栏事件
+        table.on('toolbar(test)', function (obj) {
+            switch (obj.event) {
+                case 'add':
+                    layer.open({
+                        type: 2,
+                        offset: 'r',
+                        anim: 'slideLeft', // 从右往左
+                        area: ['600px', '100%'],
+                        closeBtn: false,
+                        title: "拉取镜像",
+                        shift: 2,
+                        shade: 0.2,
+                        shadeClose: true,
+                        id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
+                        content: '{% url "docker_images_pull" %}'
+                    })
+                    //window.location.href = '{% url "docker_images_pull" %}'
+                    break;
+                case 'clear':
+                    layer.msg("臣尽力在做了，莫慌",{icon:5})
+                    break
+            }
+        })
+
+        // 监听刷新按钮点击事件
+        $('#refreshBtn').on('click', function () {
+            //获取当前页码
+            var currPage = $('.layui-laypage-em').next().html();
+                // 进行刷新操作
+                table.reload('TT', {
+                    url: "{% url 'docker_images_api' %}",
+                    page: { curr: currPage }//刷新当前页码
+                });
+        });
+
+        // 监听搜索事件
+        $(document).on('click', '#searchBtn', function () {
+            var input_val = $('.layui-input').val();
+            // var input_val = $("input[name='name']").val();
+            table.reload('TT', {
+                where: {   //设定异步数据接口的额外参数，任意设置
+                    search_key: input_val
+                },
+                page: {
+                    curr: 1  //重新从第 1 页开始
+                }
+            })
+        });
+
+
+    })
+</script>
+{% endblock %}

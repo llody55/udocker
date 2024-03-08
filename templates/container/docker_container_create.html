@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>创建容器</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"/>
+    <style>
+        body {
+            margin: 10px;
+        }
+
+        .submit-btn-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #fff;
+            border-top: 1px solid #e6e6e6;
+            text-align: left; /* 按钮居左 */
+            padding-left: 20px; /* 左内边距 */
+        }
+
+        /* 标题样式 */
+        .layui-card-header {
+            background-color: #f2f2f2;
+            /* 修改标题背景颜色 */
+            color: #333;
+            /* 修改标题文字颜色 */
+            font-size: 16px;
+            /* 修改标题文字大小 */
+            border-bottom: 1px solid #e6e6e6;
+            /* 在标题下方添加边框线 */
+            line-height: 36px;
+            /* 调整行高 */
+        }
+        /* 底部内边距样式*/
+        #fixed {
+            padding-bottom: 40px; /* 底部填充，值应大于或等于提交按钮的高度加上一些额外空间 */
+        }
+    </style>
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <fieldset class="layui-elem-field layui-field-title">
+                    <legend>创建容器</legend>
+                </fieldset>
+            </div>
+            {% csrf_token %}
+            <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">创建容器</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="name" autocomplete="off" placeholder="请输入"
+                                           lay-verify="required|name" class="layui-input"/>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 驱动 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">镜像仓库</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Driver</label>
+                                <div class="layui-input-inline">
+                                    <select name="registries" id="registries">
+                                    </select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">镜像</label>
+                                <div class="layui-input-block">
+                                    <!--<input type="text" name="images" autocomplete="off" placeholder="例如：llody/nginx:v1.23.4" lay-verify="required" class="layui-input"/> -->
+                                    <select name="images" id="images" lay-verify="required" lay-search>
+                                        <option value="">直接选择或搜索选择</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 端口映射 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">端口映射
+                            <a type="button" class="layui-btn layui-btn-xs layui-btn-normal add-btn" id="addPort"
+                               style="text-align: left;">新增</a>
+                        </div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item" id="portsContainer">
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- command命令 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">CMD</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">命令</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="command" autocomplete="off" placeholder="请输入命令" class="layui-input"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Volume挂载 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">Volumes挂载
+                            <a type="button" class="layui-btn layui-btn-xs layui-btn-normal add-btns"
+                               style="text-align: left;">新增</a>
+                        </div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item" pane>
+                                <label class="layui-form-label">持久化映射</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="secret_type" value="host" title="主机映射"
+                                           lay-filter="secret_type">
+                                    <input type="radio" name="secret_type" value="docker"
+                                           title="docker映射" lay-filter="secret_type">
+                                </div>
+                            </div>
+                            <div id="data-blocks">
+                                <!-- 主机映射 -->
+                                <fieldset class="fieldset-container" data-type="host" style="padding: 30px;display: none;">
+                                    <legend>主机映射数据</legend>
+                                    <input type="hidden" name="deleted[]" value="false"> <!-- 添加隐藏输入用于追踪删除状态 -->
+                                    <span class="layui-icon layui-icon-close delete-btn" title="删除"></span>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">主机路径</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="host_volumes[]" autocomplete="off"
+                                                   placeholder="请添加主机路径" class="layui-input"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">容器路径</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="host_container_volumes[]" autocomplete="off"
+                                                   placeholder="请填写容器内路径" class="layui-input"/>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <!-- docker映射 -->
+
+                                <fieldset class="fieldset-container" data-type="docker"
+                                          style="padding: 30px; display: none;">
+                                    <legend>Docker映射数据</legend>
+                                    <input type="hidden" name="deleted[]" value="false"> <!-- 添加隐藏输入用于追踪删除状态 -->
+                                    <span class="layui-icon layui-icon-close delete-btn" title="删除"></span>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">volume路径</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="docker_volumes[]" autocomplete="off" placeholder="请添加volumes路径"  class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">容器路径</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="docker_container_volumes[]" autocomplete="off"
+                                                   placeholder="请填写容器内路径" class="layui-input"/>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 网络模式 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">驱动配置</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Driver</label>
+                                <div class="layui-input-inline">
+                                    <select name="driver" id="driver">
+                                    </select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 环境变量 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">环境变量
+                            <a type="button" class="layui-btn layui-btn-xs layui-btn-normal add-btn" id="addEnv"
+                               style="text-align: left;">新增</a>
+                        </div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item" id="envContainer">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 重启策略 -->
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">重启策略</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">重启策略</label>
+                                <div class="layui-input-inline">
+                                    <select name="restart_policy" >
+                                        <option value="no">默认不重启(no)</option>
+                                        <option value="always">自动重启(always)</option>
+                                        <option value="on-failure">失败时重启(on-failure)</option>
+                                        <option value="unless-stopped">退出时重启(unless-stopped)</option>
+                                    </select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 资源限制 -->
+                <div class="layui-col-md6" id="fixed">
+                    <div class="layui-card">
+                        <div class="layui-card-header">资源限制</a>
+                        </div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">特权容器</label>
+                                <div class="layui-input-inline">
+                                    <input type="checkbox" name="Privileged_enabled" lay-skin="switch"
+                                           lay-filter="togglePrivileged" lay-text="ON|OFF">
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 底部按钮 -->
+                <div class="submit-btn-fixed">
+                    <button type="button" class="layui-btn" lay-submit lay-filter="formSubmit">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/static/layui/layui.js"></script>
+<script>
+    layui.use(['form', 'laydate', 'util'], function () {
+        var form = layui.form
+        var $ = layui.jquery
+        var layer = layui.layer
+        var laydate = layui.laydate
+        var util = layui.util
+
+        // 自定义验证规则
+        form.verify({
+            name: function (value, item) {
+                // 条件验证，允许name为空，但是不允许提交非法字符
+                console.log("提交：" + value)
+                if (value.length > 0 && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(value)) {
+                    return '请输入有效名称，满足以下规则：起始字符为字母或数字, 后续字符可以包括字母、数字、下划线、点或连字符'
+                }
+            },
+        })
+
+        // 加载数据库中镜像仓库地址
+        function loadRegistriesName() {
+            $.ajax({
+                url: '{% url "get_registries_list" %}',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status === 'success') {
+                        var RegistriesNameSelect = $("#registries");
+
+                        $.each(data.registries, function (index, registries) {
+                            RegistriesNameSelect.append(new Option(registries.registries_name, registries.registries_url));
+                        });
+                        form.render('select'); // 更新渲染
+                    } else {
+                        layer.msg('加载镜像仓库列表失败: ' + result.msg);
+                    }
+                },
+                error: function () {
+                    layer.msg('加载镜像仓库列表失败', {icon: 5}, {time: 3000});
+                }
+            })
+        }
+
+        loadRegistriesName()
+
+        // 加载网络模式地址
+        function loadDriverName() {
+            $.ajax({
+                url: '{% url "get_network_list" %}',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status === 'success') {
+                        var DriverNameSelect = $("#driver");
+
+                        $.each(data.network_data, function (index, network_data) {
+                            // 创建默认值
+                            var isSelected = network_data.driverName === 'bridge';
+                            // 创建Option对象时设置selected属性
+                            var option = new Option(network_data.driverName, network_data.driverName, isSelected, isSelected);
+                            DriverNameSelect.append(option);
+                        });
+                        form.render('select'); // 更新渲染
+                    } else {
+                        layer.msg('加载网络模式地址失败: ' , {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.msg('加载网络模式地址失败', {icon: 5}, {time: 3000});
+                }
+            })
+        }
+
+        loadDriverName()
+
+        // 加载images镜像列表
+        function loadImagesName() {
+            $.ajax({
+                url: '{% url "get_images_list" %}',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status === 'success') {
+                        var ImagesNameSelect = $("#images");
+
+                        $.each(data.images_data, function (index, images_data) {
+                            ImagesNameSelect.append(new Option(images_data.image_tag));
+                        });
+                        form.render('select'); // 更新渲染
+                    } else {
+                        layer.msg('加载镜像地址失败: ' , {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.msg('加载镜像地址失败', {icon: 5}, {time: 3000});
+                }
+            })
+        }
+
+        loadImagesName()
+
+        // 指定开关事件
+        form.on('switch(togglePrivileged)', function (data) {
+            layer.tips('温馨提示：开启意味着，此容器将具备访问宿主机权限', data.othis)
+        })
+
+        // 动态新增删除端口块
+        $(document).ready(function () {
+            // 添加端口块的函数
+            function addPortBlock() {
+                // 添加新的端口设置块
+                var newPortBlock = '<div class="layui-inline port-block" >' +
+                    '<label class="layui-form-label">端口映射</label>' +
+                    '<div class="layui-input-inline" style="width: 80px;">' +
+                    '<input type="text" name="hostPorts[]" placeholder="主机端口" autocomplete="off" class="layui-input">' +
+                    '</div>' +
+                    '<div class="layui-form-mid">-</div>' +
+                    '<div class="layui-input-inline" style="width: 80px;">' +
+                    '<input type="text" name="containerPorts[]" placeholder="容器端口" autocomplete="off" class="layui-input">' +
+                    '</div>' +
+                    '<div class="layui-input-inline" style="width: 80px;">' +
+                    '<select name="protocols[]">' +
+                    '<option value="TCP">TCP</option>' +
+                    '<option value="UDP">UDP</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="layui-input-inline" style="width: 50px;height: 30px">' +
+                    '<a class="layui-btn layui-btn-danger delete-btn"><i class="layui-icon layui-icon-delete"></i> </a>' +
+                    '</div>' +
+                    '</div>';
+                $('#portsContainer').append(newPortBlock);
+                form.render('select'); // 重新渲染select组件
+            }
+
+            // 初始调用一次以添加第一个端口块
+            addPortBlock();
+
+            // 点击添加按钮，添加新的端口块
+            $('#addPort').click(function () {
+                addPortBlock();
+            });
+
+            // 删除端口块
+            $(document).on('click', '.delete-btn', function () {
+                $(this).closest('.port-block').remove(); // 删除当前端口块
+            });
+        });
+
+        // 动态新增删除ENV块
+        $(document).ready(function () {
+            // 添加端口块的函数
+            function addEnvBlock() {
+                // 添加新的端口设置块
+                var newPortBlock = '<div class="layui-inline env-block" >' +
+                    '<label class="layui-form-label">ENV</label>' +
+                    '<div class="layui-input-inline" style="width: 80px;">' +
+                    '<input type="text" name="keyName[]" placeholder="KEY" autocomplete="off" class="layui-input">' +
+                    '</div>' +
+                    '<div class="layui-form-mid">-</div>' +
+                    '<div class="layui-input-inline" style="width: 80px;">' +
+                    '<input type="text" name="valueName[]" placeholder="VALUE" autocomplete="off" class="layui-input">' +
+                    '</div>' +
+                    '<div class="layui-input-inline" style="width: 50px;height: 30px">' +
+                    '<a class="layui-btn layui-btn-danger delete-btn"><i class="layui-icon layui-icon-delete"></i> </a>' +
+                    '</div>' +
+                    '</div>';
+                $('#envContainer').append(newPortBlock);
+                form.render('select'); // 重新渲染select组件
+            }
+
+            // 初始调用一次以添加第一个env块
+            addEnvBlock();
+
+            // 点击添加按钮，添加新的env块
+            $('#addEnv').click(function () {
+                addEnvBlock();
+            });
+
+            // 删除端口块
+            $(document).on('click', '.delete-btn', function () {
+                $(this).closest('.env-block').remove(); // 删除当前env块
+            });
+        });
+
+        // 存储持久化模块
+        // 动态绑定删除事件
+        $('body').on('click', '.delete-btn', function () {
+            $(this).siblings('input[name="deleted[]"]').val('true');  // 标记数据块为已删除
+            $(this).parent('.fieldset-container').remove();  // 隐藏字段集而非移除，以保留删除标记
+        });
+
+        // 动态显示或隐藏数据块和新增按钮
+        function toggleFields(value) {
+            $('#data-blocks .fieldset-container').hide();
+            // 根据选择的类型显示相应的字段集和控制新增按钮的显示
+            var typeBlock = $('#data-blocks .fieldset-container[data-type="' + value + '"]');
+            if (value === 'host') {
+                $('.add-btns').show(); // 仅当类型为Opaque时显示新增按钮
+            }
+            typeBlock.show(); // 显示选定类型的字段集
+        }
+
+        // 监听单选框的变化来切换字段集
+        form.on('radio(secret_type)', function (data) {
+            console.log("radio changed: ", data.value);
+            toggleFields(data.value);
+        });
+        // 页面初始化时，根据默认选中的单选框设置字段显隐
+        toggleFields($('input[name="secret_type"]:checked').val());
+
+        // 监听新增按钮点击事件
+        $('.add-btns').on('click', function () {
+            var secretType = $('input[name="secret_type"]:checked').val();
+            addFieldset(secretType);
+        });
+
+        // 添加新的fieldset-container块的函数
+        function addFieldset(type) {
+            // 主机映射模板
+            var hostTemplate = '<fieldset class="fieldset-container" data-type="host" style="padding: 30px;">' +
+                '<legend>主机映射数据</legend>' +
+                '<input type="hidden" name="deleted[]" value="false">' +
+                '<span class="layui-icon layui-icon-close delete-btn" title="删除"></span>' +
+                '<div class="layui-form-item">' +
+                '<label class="layui-form-label">主机路径</label>' +
+                '<div class="layui-input-block">' +
+                '<input type="text" name="host_volumes[]" autocomplete="off" placeholder="请添加主机路径"  class="layui-input">' +
+                '</div>' +
+                '</div>' +
+                '<div class="layui-form-item">' +
+                '<label class="layui-form-label">容器路径</label>' +
+                '<div class="layui-input-block">' +
+                '<input type="text" name="host_container_volumes[]" autocomplete="off" placeholder="请填写容器内路径"  class="layui-input">' +
+                '</div>' +
+                '</div>' +
+                '</fieldset>';
+
+            // Docker 映射模板
+            var dockerTemplate = '<fieldset class="fieldset-container" data-type="docker" style="padding: 30px;">' +
+                '<legend>Docker映射数据</legend>' +
+                '<input type="hidden" name="deleted[]" value="false">' +
+                '<span class="layui-icon layui-icon-close delete-btn" title="删除"></span>' +
+                '<div class="layui-form-item">' +
+                '<label class="layui-form-label">volume路径</label>' +
+                '<div class="layui-input-block">' +
+                '<input type="text" name="docker_volumes[]" autocomplete="off" placeholder="请添加volumes路径"  class="layui-input">' +
+                '</div>' +
+                '</div>' +
+                '<div class="layui-form-item">' +
+                '<label class="layui-form-label">容器路径</label>' +
+                '<div class="layui-input-block">' +
+                '<input type="text" name="docker_container_volumes[]" autocomplete="off" placeholder="请填写容器内路径"  class="layui-input">' +
+                '</div>' +
+                '</div>' +
+                '</fieldset>';
+
+            // 根据传入的类型添加相应的字段集
+            if (type === 'host') {
+                $('#data-blocks').append(hostTemplate);
+            } else if (type === 'docker') {
+                $('#data-blocks').append(dockerTemplate);
+            }
+
+            form.render(); // 更新渲染
+        }
+
+        //表单提交方法
+        form.on('submit(formSubmit)', function (data) {
+            var formData = new FormData($('#add-form')[0])
+            // 输出所有表单数据，包括动态添加的元素
+            for (var key of formData.keys()) {
+                console.log(key, formData.getAll(key));
+            }
+            csrf_token = $('[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url: '{% url "docker_container_api" %}',
+                type: 'POST',
+                processData: false, // 告知jQuery不要去处理发送的数据
+                contentType: false, // 告知jQuery不要去设置Content-Type请求头
+                data: formData,
+                headers: { 'X-CSRFToken': csrf_token },
+                // 提交成功回调函数
+                success: function (res) {
+                    if (res.code == '0') {
+                        layer.msg(res.msg, { icon: 6, time: 500 }, function () {
+                            // 重新加载页面
+                            parent.location.reload()
+                        });
+                    } else if (res.code == '1') {
+                        layer.msg(res.msg, { icon: 5 }, { time: 5000 })
+                    }
+                },
+                // 访问接口失败函数
+                error: function (res) {
+                    layer.msg('服务器接口异常！', { icon: 5 })
+                }
+
+            })
+            return false // 阻止表单提交
+        });
+    })
+</script>
+</body>
+</html>

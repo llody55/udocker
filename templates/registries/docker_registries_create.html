@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>新增镜像仓库</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" />
+    <style>
+      body {
+        margin: 10px;
+      }
+      .submit-btn-fixed {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px 0;
+        background-color: #fff;
+        border-top: 1px solid #e6e6e6;
+        text-align: left; /* 按钮居左 */
+        padding-left: 20px; /* 左内边距 */
+      }
+      /* 标题样式 */
+      .layui-card-header {
+        background-color: #f2f2f2;
+        /* 修改标题背景颜色 */
+        color: #333;
+        /* 修改标题文字颜色 */
+        font-size: 16px;
+        /* 修改标题文字大小 */
+        border-bottom: 1px solid #e6e6e6;
+        /* 在标题下方添加边框线 */
+        line-height: 36px;
+        /* 调整行高 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layui-card">
+      <div class="layui-card-body">
+        <div class="layui-row">
+          <div class="layui-col-md12">
+            <fieldset class="layui-elem-field layui-field-title">
+              <legend>Registries创建</legend>
+            </fieldset>
+          </div>
+          {% csrf_token %}
+          <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
+            <div class="layui-col-md6">
+              <div class="layui-card">
+                <div class="layui-card-header">创建仓库信息</div>
+                <div class="layui-card-body layui-bg-gray">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">仓库名称</label>
+                    <div class="layui-input-inline">
+                      <input type="text" name="name" autocomplete="off" placeholder="请输入" lay-verify="required|name" class="layui-input" />
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                  </div>
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">仓库地址</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="url" autocomplete="off" placeholder="请输入" lay-verify="required|name" class="layui-input" />
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                  </div>
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">仓库认证</label>
+                    <input type="checkbox" name="auth_enabled" lay-skin="switch" lay-filter="toggleAuth" lay-text="ON|OFF" />
+                  </div>
+
+                  <!-- 开启认证时显示，默认隐藏 -->
+                  <div id="open_auth" class="layui-hide">
+                    <div class="layui-form-item">
+                      <label class="layui-form-label">用户名</label>
+                      <div class="layui-input-inline">
+                        <input type="text" name="username" autocomplete="off" placeholder="请输入用户名" lay-verify="username" class="layui-input" />
+                      </div>
+                      <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                    </div>
+                    <div class="layui-form-item">
+                      <label class="layui-form-label">密码</label>
+                      <div class="layui-input-inline">
+                        <input type="password" name="password" autocomplete="off" placeholder="请输入密码" lay-verify="password" class="layui-input" />
+                      </div>
+                      <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <div class="submit-btn-fixed">
+              <button type="button" class="layui-btn" lay-submit lay-filter="formSubmit">提交</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/layui/layui.js"></script>
+    <script>
+      layui.use(['form', 'laydate', 'util'], function () {
+        var form = layui.form
+        var $ = layui.jquery
+        var layer = layui.layer
+        var laydate = layui.laydate
+        var util = layui.util
+      
+        // 自定义验证规则
+        form.verify({
+          name: function (value, item) {
+            // 条件验证，不允许name为空，但是不允许提交非法字符
+            console.log('提交：' + value)
+            if (value.length > 0 && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(value)) {
+              return '请输入有效名称，满足以下规则：起始字符为字母或数字, 后续字符可以包括字母、数字、下划线、点或连字符'
+            }
+          },
+          // 其他验证规则保持不变
+          username: function (value, item) {
+            var authEnabled = $('input[name="auth_enabled"]').is(':checked');
+            if (authEnabled && value.length === 0) {
+              return '请输入用户名';
+            }
+          },
+          password: function (value, item) {
+            var authEnabled = $('input[name="auth_enabled"]').is(':checked');
+            if (authEnabled && value.length === 0) {
+              return '请输入密码';
+            }
+          }
+        })
+        // 指定开关事件
+        form.on('switch(required)', function (data) {
+          layer.tips('温馨提示：此功能开发中,可忽略', data.othis)
+        })
+        // 监听认证开关变化
+        form.on('switch(toggleAuth)', function (data) {
+          if (data.elem.checked) {
+            $('#open_auth').removeClass('layui-hide')
+          } else {
+            $('#open_auth').addClass('layui-hide')
+          }
+          form.render() // 重新渲染表单
+        })
+      
+        form.on('submit(formSubmit)', function (data) {
+          var formData = new FormData($('#add-form')[0])
+          // 检查认证开关是否启用
+          var authEnabled = $('input[name="auth_enabled"]').is(':checked');
+          
+          // 如果认证未开启，从formData中删除用户名和密码
+          var formData = new FormData($('#add-form')[0]);
+          if (!authEnabled) {
+            formData.delete('username');
+            formData.delete('password');
+          }
+          // 获取表单数据
+          csrf_token = $('[name="csrfmiddlewaretoken"]').val()
+          data['csrfmiddlewaretoken'] = csrf_token
+          $.ajax({
+            url: '{% url "docker_registries_api" %}',
+            type: 'POST',
+            processData: false, // 告知jQuery不要去处理发送的数据
+            contentType: false, // 告知jQuery不要去设置Content-Type请求头
+            data: formData,
+            headers: { 'X-CSRFToken': csrf_token },
+            // 提交成功回调函数
+            success: function (res) {
+              if (res.code == '0') {
+                layer.msg(res.msg, { icon: 6, time: 500 }, function () {
+                  // 重新加载页面
+                  parent.location.reload()
+              });
+              } else if (res.code == '1') {
+                layer.msg(res.msg, { icon: 5 }, { time: 5000 })
+              }
+            },
+            // 访问接口失败函数
+            error: function (res) {
+              layer.msg('服务器接口异常！', { icon: 5 })
+            }
+          })
+          return false // 阻止表单提交
+        })
+      })
+    </script>
+  </body>
+</html>

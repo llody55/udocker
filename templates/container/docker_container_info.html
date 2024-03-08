@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>容器详情页</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css">
+    <style>
+        body {
+            margin: 10px;
+        }
+        .layui-table {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-card">
+        <div class="layui-card-body">
+        <div class="layui-row">
+          <div class="layui-col-md12">
+            <fieldset class="layui-elem-field layui-field-title">
+              <legend>容器信息详情</legend>
+            </fieldset>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-xs6">
+                            <div class="layui-card">
+                                <div class="layui-card-body">
+                                    <div class="layui-icon layui-icon-template-1"></div>
+                                    <div class="layui-text">
+                                        <div class="layui-word-aux">CPU {{connect.cpu_ops}}</div>
+                                        <div class="layui-word-main"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs6">
+                          <div class="layui-card">
+                              <div class="layui-card-body">
+                                  <div class="layui-icon layui-icon-template-1"></div>
+                                  <div class="layui-text">
+                                      <div class="layui-word-aux">内存  {{connect.mem_ops}}</div>
+                                      <div class="layui-word-main"></div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-xs6">
+                            <div class="layui-card">
+                                <div class="layui-card-body">
+                                    <div class="layui-icon layui-icon-template-1"></div>
+                                    <div class="layui-text">
+                                        <div class="layui-word-aux">磁盘 {{connect.usage_volumes}}</div>
+                                        <div class="layui-word-main"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs6">
+                            <div class="layui-card">
+                                <div class="layui-card-body">
+                                    <div class="layui-icon layui-icon-template-1"></div>
+                                    <div class="layui-text">
+                                        <div class="layui-word-aux">网络(总)  {{connect.rx_tx_bytes}}</div>
+                                        <div class="layui-word-main"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">容器状态</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130">
+                    <col width="130">
+                    <col>
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>ID</td>
+                      <td>{{ connect.id }}</td>
+                    </tr>
+                    <tr>
+                      <td>Name</td>
+                      <td>{{ connect.name }}</td>
+                    </tr>
+                    <tr>
+                      <td>IP address</td>
+                      <td>
+                        {% for c in connect.networks %}
+                        {{ c.ip_address }}
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Status</td>
+                      <td>{{ connect.status }}</td>
+                    </tr>
+                    <tr>
+                      <td>Created</td>
+                      <td>{{ connect.create_time }}</td>
+                    </tr>
+                    <tr>
+                      <td>Start time</td>
+                      <td>{{ connect.start_time }}</td>
+                    </tr>
+                    <tr>
+                      <td>系统时间</td>
+                      <td>{{ connect.system_time }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">容器详细信息</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130">
+                    <col width="130">
+                    <col>
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>镜像</td>
+                      <td>{{ connect.image }}</td>
+                    </tr>
+                    <tr>
+                      <td>端口</td>
+                      <td>
+                        {% for c in connect.ports_data %}
+                          {% if c.isport == True %}
+                            {{ c.ports }}:None<br>
+                          {% else %}
+                            {{ c.ports }}:{{c.host_port}}<br>
+                          {% endif %}
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>CMD命令</td>
+                      <td>{{ connect.cmd_ops }}</td>
+                    </tr>
+                    <tr>
+                      <td>ENTRYPOINT</td>
+                      <td>{{ connect.entrypoint }}</td>
+                    </tr>
+                    <tr>
+                      <td>环境变量</td>
+                      <td>
+                        {% for c in connect.env_ops %}
+                          {{ c }} <br/>
+                        {% endfor %}
+                      </td>
+                      
+                    </tr>
+                    <tr>
+                      <td>标签</td>
+                      <td>
+                        {% for c in connect.labels_data %}
+                        {{ c.labels_ops }} <br/>
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>重启方式</td>
+                      <td>{{ connect.restart_olicy }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">容器挂载</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130">
+                    <col width="130">
+                    <col>
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>Host/volume</td>
+                      <td>Path in container</td>
+                    </tr>
+                    {% for mounts in connect.mountss %}
+                    <tr>
+                      <td>{{ mounts.mounts_Source }}</td>
+                      <td>{{ mounts.mounts_Destination }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">容器网络</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130">
+                    <col width="130">
+                    <col>
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>网卡名称</td>
+                      <td>
+                        {% for c in connect.networks %}
+                        {{ c.net_name }} <br/>
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>IP Address</td>
+                      <td>
+                        {% for c in connect.networks %}
+                        {{ c.ip_address }} <br/>
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Gateway</td>
+                      <td>
+                        {% for c in connect.networks %}
+                        {{ c.gateway }} <br/>
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>MAC Address</td>
+                      <td>
+                        {% for c in connect.networks %}
+                        {{ c.mac_address }} <br/>
+                        {% endfor %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Actions</td>
+                      <td>
+                        {% for c in connect.data %}
+                          {{ c.components }} <br/>
+                        {% endfor %}
+                      </td>
+                      
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    <script src="/static/layui/layui.js"></script>
+</body>
+</html>

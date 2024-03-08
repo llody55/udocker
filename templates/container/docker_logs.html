@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>容器日志</title>
+    <script src="/static/layui/layui.js"></script>
+    <style>
+    body {
+        background-color: black;
+    }
+    .terminal-window {
+        background-color: #2f4050;
+        width: 99%;
+        color: white;
+        line-height: 25px;
+        margin-bottom: 10px;
+        font-size: 18px;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between; /* 分布空间 */
+        align-items: center; /* 垂直居中 */
+    }
+    .containers {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .right-content {
+        display: flex;
+        align-items: center;
+    }
+    .containers select, .containers option {
+        height: 25px;
+        font-size: 18px;
+        color: #2F4056;
+        text-overflow: ellipsis;
+        outline: none;
+    }
+    #logs pre {
+        color: #eeeeee;
+    }
+    #keywordInput, #searchButton {
+        padding: 5px;
+        margin-left: 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        color: black;
+        cursor: pointer;
+    }
+</style>
+</head>
+
+<body>
+  <div class="terminal-window" id="lll">
+    <div class="containers">
+        <div class="left-content">
+            容器ID：{{ connect.container_id }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+        <div class="right-content">
+            <input type="text" id="keywordInput" placeholder="输入关键字搜索"/>
+            <button id="searchButton">搜索</button>
+        </div>
+    </div>
+</div>
+  <div id="logs">
+     <pre></pre>
+  </div>
+</body>
+
+
+<script>
+layui.use('layer', function(){
+  var $ = layui.jquery;
+    var containers_name = '{{ connect.name }}';
+    var containers = '{{ connect.containers }}';
+    var container_id = '{{ connect.container_id }}';
+    // 存储日志行的数组
+    var logLines = [];
+    // 更新日志显示
+    function updateLogDisplay() {
+        var keyword = $("#keywordInput").val().toLowerCase();
+        
+        // 根据关键字过滤日志
+        var filteredLogLines = logLines.filter(function(line) {
+            return line.toLowerCase().indexOf(keyword) !== -1;
+        });
+
+        // 显示过滤后的日志行
+        $("#logs pre").text(filteredLogLines.join(''));
+    }
+    // 搜索按钮点击事件
+    $("#searchButton").on('click', function() {
+        updateLogDisplay();
+    });
+    // 打开一个 websocket，django也会把sessionid传过去
+    var ws = new WebSocket('ws://' + window.location.host + '/apps/docker_logs/' +  '?containers='+ containers);
+
+    // 打开websocket连接，并打开终端
+    ws.onopen = function () {
+        console.log('WebSocket connection opened.');
+    };
+    // WebSocket异常
+    ws.onerror = function (event) {
+        console.log('error: ' + event);
+    };
+    // 读取服务器发送的数据并更新日志显示
+    ws.onmessage = function(event) {
+        logLines.push(event.data); // 添加新的日志行
+        updateLogDisplay(); // 更新日志显示
+    };
+
+});
+</script>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Volume详情页</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" />
+    <style>
+      body {
+        margin: 10px;
+      }
+      .layui-table {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layui-card">
+      <div class="layui-card-body">
+        <div class="layui-row">
+          <div class="layui-col-md12">
+            <fieldset class="layui-elem-field layui-field-title">
+              <legend>Volume详情</legend>
+            </fieldset>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">挂载详情</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130" />
+                    <col width="130" />
+                    <col />
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>ID</td>
+                      <td>{{ connect.ID }}</td>
+                    </tr>
+                    <tr>
+                      <td>挂载路径</td>
+                      <td>{{ connect.Mountpoint }}</td>
+                    </tr>
+                    <tr>
+                      <td>Driver</td>
+                      <td>{{ connect.Driver }}</td>
+                    </tr>
+                    <tr>
+                      <td>创建时间</td>
+                      <td>{{ connect.CreatedAt }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="layui-col-md6">
+            <div class="layui-card">
+              <div class="layui-card-header">容器挂载</div>
+              <div class="layui-card-body layui-bg-gray">
+                <table class="layui-table">
+                  <colgroup>
+                    <col width="130" />
+                    <col width="130" />
+                    <col />
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td>Container Name</td>
+                      <td>Mounted At</td>
+                    </tr>
+                    <tr>
+                      <td>{{ connect.ContainerName }}</td>
+                      <td>{{ connect.MountPath }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <script src="/static/layui/layui.js"></script>
+  </body>
+</html>

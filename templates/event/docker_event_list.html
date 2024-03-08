@@ -1,0 +1,142 @@
+{% extends 'docker_base.html' %}
+{% block title %}事件管理{% endblock %}
+{% block item-6 %}layui-nav-itemed{% endblock %}
+{% block head_style %}
+<style>
+    /* 刷新按钮样式 */
+    .custom-refresh-btn {
+        float: right;
+        background-color: white;
+        border: 1px solid #e6e6e6;
+        color: #333;
+        border-radius: 2px;
+    }
+
+    .custom-refresh-btn:hover {
+        background-color: #f2f2f2; /* 鼠标悬浮时的背景色 */
+        cursor: pointer; /* 鼠标悬浮时变成手形图标 */
+    }
+    /* 保留水平行边框，移除垂直列边框 */
+    .layui-table td, .layui-table th {
+        border-left: none !important;
+        border-right: none !important;
+    }
+    /* 为了保留水平行边框，确保行的顶部和底部边框保持 */
+    .layui-table tr {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+    .layui-table th {
+        border-top: 1px solid #e6e6e6 !important;
+    }
+</style>
+{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">首页</a>
+    <a><cite>Docker事件列表</cite></a>
+</span>
+<hr>
+<div class="layui-card">
+    {% csrf_token %}
+    <div class="layui-card-body">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
+                    style="width: 150px;float: left">
+                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                </button>
+            </div>
+
+            <div class="layui-col-md12">
+                <table class="layui-hide" id="demo" lay-filter="test"></table>
+                
+                <!--  行工具 -->
+                <script type="text/html" id="barDemo">
+                    {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">查看</a>
+                    {% else %}
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">查看</a>
+                    {% endif %}
+                </script>
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block custom_js %}
+<script>
+    layui.use('table', function () {
+        var form = layui.form;
+        var table = layui.table;
+        var $ = layui.jquery;
+        var dropdown = layui.dropdown //下拉菜单
+        layer.load();
+        setTimeout(function () {
+            layer.closeAll('loading');
+        }, 2000);
+        table.render({
+            elem: '#demo' // 选择table元素
+            , url: "{% url 'docker_event_api' %}"  //数据接口, namespace值从当前session中获取
+            , page: true //开启分页
+            , toolbar: 'default'
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }]
+            , cols: [[ //表头
+                { type: 'checkbox', fixed: 'left' }   //全选按钮
+                , { field: 'container_name', title: '容器名称', sort: true }
+                , { field: 'id', title: 'ID', sort: true }
+                , { field: 'status', title: '状态', sort: true } //hide:true 隐藏某一列的信息
+                , { field: 'froms', title: '镜像', sort: true }
+                , { field: 'event_time', title: '发生时间', sort: true }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 250, align: "center" }
+            ]],
+            id: 'TT',
+        });
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            if (obj.event === 'auth') {
+                layer.msg("还没搞好")
+            } 
+        });
+        
+        // 监听刷新按钮点击事件
+        $('#refreshBtn').on('click', function () {
+            //获取当前页码
+            var currPage = $('.layui-laypage-em').next().html();
+                // 进行刷新操作
+                table.reload('TT', {
+                    url: "{% url 'docker_event_api' %}",
+                    page: { curr: currPage }//刷新当前页码
+                });
+        });
+
+        // 监听搜索事件
+        $(document).on('click', '#searchBtn', function () {
+            var input_val = $('.layui-input').val();
+            // var input_val = $("input[name='name']").val();
+            table.reload('TT', {
+                where: {   //设定异步数据接口的额外参数，任意设置
+                    search_key: input_val
+                },
+                page: {
+                    curr: 1  //重新从第 1 页开始
+                }
+            })
+        });
+
+
+    })
+</script>
+{% endblock %}

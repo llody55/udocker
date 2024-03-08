@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>网络创建</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" />
+    <style>
+      body {
+        margin: 10px;
+      }
+      .submit-btn-fixed {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px 0;
+        background-color: #fff;
+        border-top: 1px solid #e6e6e6;
+        text-align: left; /* 按钮居左 */
+        padding-left: 20px; /* 左内边距 */
+      }
+      /* 标题样式 */
+      .layui-card-header {
+        background-color: #f2f2f2;
+        /* 修改标题背景颜色 */
+        color: #333;
+        /* 修改标题文字颜色 */
+        font-size: 16px;
+        /* 修改标题文字大小 */
+        border-bottom: 1px solid #e6e6e6;
+        /* 在标题下方添加边框线 */
+        line-height: 36px;
+        /* 调整行高 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layui-card">
+      <div class="layui-card-body">
+        <div class="layui-row">
+          <div class="layui-col-md12">
+            <fieldset class="layui-elem-field layui-field-title">
+              <legend>Network创建</legend>
+            </fieldset>
+          </div>
+          {% csrf_token %}
+          <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
+            <div class="layui-col-md6">
+              <div class="layui-card">
+                <div class="layui-card-header">创建网络</div>
+                <div class="layui-card-body layui-bg-gray">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-inline">
+                      <input type="text" name="name" autocomplete="off" placeholder="请输入" lay-verify="required|name" class="layui-input" />
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 驱动 -->
+            <div class="layui-col-md6">
+              <div class="layui-card">
+                <div class="layui-card-header">驱动配置</div>
+                <div class="layui-card-body layui-bg-gray">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">Driver</label>
+                    <div class="layui-input-inline">
+                      <select name="driver" lay-verify="required">
+                        <option value="bridge" selected>bridge</option>
+                        <option value="ipvlan">ipvlan</option>
+                        <option value="macvlan">macvlan</option>
+                        <option value="overlay">overlay</option>
+                      </select>
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- IPV4 -->
+            <div class="layui-col-md6">
+              <div class="layui-card">
+                <div class="layui-card-header">IPV4网络配置</div>
+                <div class="layui-card-body layui-bg-gray">
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">网段</label>
+                    <div class="layui-input-inline">
+                      <input type="text" name="ipv4subnet" autocomplete="off" placeholder="例如：100.100.7.0/24" lay-verify="required|ipv4subnet" class="layui-input" />
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">例如：100.100.7.0/24</div>
+                  </div>
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">网关</label>
+                    <div class="layui-input-inline">
+                      <input type="text" name="ipv4gateway" autocomplete="off" placeholder="例如：100.100.7.1" lay-verify="required|ipv4gateway" class="layui-input" />
+                    </div>
+                    <div class="layui-form-mid layui-text-em layui-font-red">例如：100.100.7.1</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 底部按钮 -->
+            <div class="submit-btn-fixed">
+              <button type="button" class="layui-btn" lay-submit lay-filter="formSubmit">提交</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/layui/layui.js"></script>
+    <script>
+      layui.use(['form', 'laydate', 'util'], function () {
+        var form = layui.form
+        var $ = layui.jquery
+        var layer = layui.layer
+        var laydate = layui.laydate
+        var util = layui.util
+      
+        // 自定义验证规则
+        form.verify({
+          name: function (value, item) {
+            // 条件验证，不允许name为空，但是不允许提交非法字符
+            console.log('提交：' + value)
+            if (value.length > 0 && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(value)) {
+              return '请输入有效名称，满足以下规则：起始字符为字母或数字, 后续字符可以包括字母、数字、下划线、点或连字符'
+            }
+          },
+          // 网段验证
+          ipv4subnet: function (value, item) {
+            if (value.length > 0 && !/^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[12][0-9]|3[0-2])$/.test(value)) {
+              return '请输入有效的网段，例如：100.100.7.0/24';
+            }
+          },
+          // 网关验证
+          ipv4gateway: function (value, item) {
+            if (value.length > 0 && !/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(value)) {
+              return '请输入有效的网关地址,例如：100.100.7.1'
+            }
+          }
+        })
+        // 指定开关事件
+        form.on('switch(required)', function (data) {
+          layer.tips('温馨提示：此功能开发中,可忽略', data.othis)
+        })
+        form.on('submit(formSubmit)', function (data) {
+          var formData = new FormData($('#add-form')[0])
+          // 获取表单数据
+          csrf_token = $('[name="csrfmiddlewaretoken"]').val()
+          data['csrfmiddlewaretoken'] = csrf_token
+          $.ajax({
+            url: '{% url "docker_network_api" %}',
+            type: 'POST',
+            processData: false, // 告知jQuery不要去处理发送的数据
+            contentType: false, // 告知jQuery不要去设置Content-Type请求头
+            data: formData,
+            headers: { 'X-CSRFToken': csrf_token },
+            // 提交成功回调函数
+            success: function (res) {
+              if (res.code == '0') {
+                layer.msg(res.msg, { icon: 6, time: 500 }, function () {
+                  // 重新加载页面
+                  parent.location.reload()
+              });
+              } else if (res.code == '1') {
+                layer.msg(res.msg, { icon: 5 }, { time: 5000 })
+              }
+            },
+            // 访问接口失败函数
+            error: function (res) {
+              layer.msg('服务器接口异常！', { icon: 5 })
+            }
+          })
+          return false // 阻止表单提交
+        })
+      })
+    </script>
+  </body>
+</html>

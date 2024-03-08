@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>拉取镜像</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"/>
+    <style>
+        body {
+            margin: 10px;
+        }
+
+        .submit-btn-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #fff;
+            border-top: 1px solid #e6e6e6;
+            text-align: left; /* 按钮居左 */
+            padding-left: 20px; /* 左内边距 */
+        }
+
+        /* 标题样式 */
+        .layui-card-header {
+            background-color: #f2f2f2;
+            /* 修改标题背景颜色 */
+            color: #333;
+            /* 修改标题文字颜色 */
+            font-size: 16px;
+            /* 修改标题文字大小 */
+            border-bottom: 1px solid #e6e6e6;
+            /* 在标题下方添加边框线 */
+            line-height: 36px;
+            /* 调整行高 */
+        }
+    </style>
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <fieldset class="layui-elem-field layui-field-title">
+                    <legend>Registries创建</legend>
+                </fieldset>
+            </div>
+            {% csrf_token %}
+            <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
+                <div class="layui-col-md6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">拉取镜像</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">仓库地址</label>
+                                <div class="layui-input-block">
+                                    <select name="registries" id="registries" lay-verify="required">
+                                    </select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">请选择用于拉取镜像的仓库</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">镜像地址</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="url" autocomplete="off"
+                                           placeholder="例如：llody/nginx:v1,23,4"
+                                           lay-verify="required|name" class="layui-input"/>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">请填写完整的镜像地址</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部按钮 -->
+                <div class="submit-btn-fixed">
+                    <button type="button" class="layui-btn" id="pull-image">拉取镜像</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/static/layui/layui.js"></script>
+<script>
+    layui.use(['form', 'laydate', 'util'], function () {
+        var form = layui.form
+        var $ = layui.jquery
+        var layer = layui.layer
+        var laydate = layui.laydate
+        var util = layui.util
+
+        // 自定义验证规则
+        form.verify({
+            name: function (value, item) {
+                // 条件验证，不允许name为空，但是不允许提交非法字符
+                if (value.length > 0 && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(value)) {
+                    return '请输入有效名称，满足以下规则：起始字符为字母或数字, 后续字符可以包括字母、数字、下划线、点或连字符'
+                }
+            }
+        })
+
+        // 加载数据库中镜像仓库地址
+        function loadRegistriesName() {
+            $.ajax({
+                url: '{% url "get_registries_list" %}',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status === 'success') {
+                        var RegistriesNameSelect = $("#registries");
+
+                        $.each(data.registries, function (index, registries) {
+                            RegistriesNameSelect.append(new Option(registries.registries_name, registries.registries_url));
+                        });
+                        form.render('select'); // 更新渲染
+                    } else {
+                        layer.msg('加载镜像仓库列表失败: ' + result.msg);
+                    }
+                },
+                error: function () {
+                    layer.msg('加载镜像仓库列表失败', {icon: 5}, {time: 3000});
+                }
+            })
+        }
+
+        loadRegistriesName()
+
+        // 监听拉取镜像按钮点击事件
+        $('#pull-image').on('click', function () {
+            var imageUrl = $('input[name="url"]').val(); // 获取镜像地址输入值
+            var registriesUrl = $('#registries').val(); // 获取选中的仓库地址
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var postdata = {"imageUrl":imageUrl,"registriesUrl":registriesUrl}
+            // 显示 loading 效果
+            var loadingIndex = layer.load(3);
+            layer.msg('镜像拉取开始，请稍候...', {time: 2000});
+            $.ajax({
+                type: 'PULL',
+                url: '{% url "docker_images_api" %}', // 替换为后端处理拉取镜像的API路径
+                data: postdata,
+                dataType: 'json',
+                headers: { 'X-CSRFToken': csrf_token },
+                success: function (result) {
+                    if (result.code == '0') {
+                        // 关闭 loading 效果
+                        layer.close(loadingIndex);
+                        // 显示拉取镜像开始的消息
+                        layer.msg(result.msg, {time: 3000}, { icon: 6 });
+                        // 开始轮询检查镜像拉取状态
+                        //var taskId = response.task_id; // 从响应中获取任务ID
+                        //console.log("任务ID:"+ taskId)
+                        //checkImagePullStatus(taskId); // 轮询检查状态的函数
+                    } else {
+                        // 关闭 loading 效果
+                        layer.close(loadingIndex);
+                        // 显示错误消息
+                        layer.msg(result.msg, {time: 2000});
+                    }
+                },
+                error: function () {
+                    layer.msg('服务器请求失败');
+                }
+            })
+        });
+        // 轮询检查镜像拉取状态的函数 --未实现
+        function checkImagePullStatus(taskId) {
+            setTimeout(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '#', // 替换为后端检查状态的API
+                    success: function (response) {
+                        if (response.status === 'finished') {
+                            // 显示拉取成功或失败的消息
+                            layer.msg(response.message, {time: 3000});
+                        } else {
+                            // 如果状态不是 'finished'，继续轮询
+                            checkImagePullStatus(taskId);
+                        }
+                    },
+                    error: function () {
+                        layer.msg('检查镜像状态时服务器请求失败');
+                    }
+                });
+            }, 3000); // 设定轮询间隔为3秒
+        }
+    })
+</script>
+</body>
+</html>
