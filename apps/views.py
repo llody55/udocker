@@ -116,7 +116,8 @@ def user_login(request):
             login(request, user)
             return redirect('index')
         else:
-            return HttpResponse("用户名或密码错误。")
+            msg = "账户或者密码错误"
+            return render(request, 'login.html',{"msg": msg})
     else:
         return render(request, 'login.html')
 
@@ -125,6 +126,32 @@ def user_logout(request):
     logout(request)
     # 重定向到登录页面，这里使用了Django的默认登录路由
     return redirect('/apps/user_login/')
+
+# 重置密码
+@login_required
+def password_reset_request(request):
+    if request.method == "GET":
+        return render(request, 'password_reset.html')
+    elif request.method == "POST":
+        # 当前用户
+        username = request.POST.get('username')
+        # 当前密码
+        current_password = request.POST.get('current_password')
+        # 新密码
+        new_password = request.POST.get('new_password')
+        print("前端提交信息:",username,current_password,new_password)
+        user = authenticate(request, username=username, password=current_password)
+        if user is not None:
+            try:
+                user.set_password(new_password)
+                user.save()
+                return JsonResponse({'success': '密码已重置，请重新登陆','code':'0'})
+            except Exception as e:
+                # 如果密码更新过程中出现异常，返回错误信息
+                return JsonResponse({'error': '密码重置失败，请重试一次!!!','code':'1'})
+        else:
+            # 如果当前密码验证失败，返回错误信息
+            return JsonResponse({'error': '当前密码不正确，请重试','code':'1'})
 
 @login_required
 def docker_container(request):

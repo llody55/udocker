@@ -4,6 +4,7 @@ from apps import views
 urlpatterns = [
     re_path('user_login/',views.user_login,name="user_login"),
     re_path('logout/',views.user_logout,name="logout"),
+    re_path('password_reset_request/',views.password_reset_request,name="password_reset_request"),
 
     re_path('docker_container/',views.docker_container,name="docker_container"),
     re_path("docker_container_api/",views.docker_container_api,name="docker_container_api"),  # 远程docker容器管理列表

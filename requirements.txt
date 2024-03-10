@@ -1,0 +1,7 @@
+channels==3.0.5
+cryptography==41.0.5
+Django==3.2.15
+docker_py==1.10.6
+humanize==4.9.0
+loguru==0.7.2
+python_dateutil==2.8.2
