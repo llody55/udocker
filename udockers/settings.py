@@ -95,46 +95,46 @@ DATABASES = {
     }
 }
 
-# # 使用本地内存缓存
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-#         'LOCATION': 'unique-snowflake',
-#     }
-# }
-
-# # 设置 Channels 的内存通道层
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-#     },
-# }
-
-# # django的公司redis
+# 使用本地内存缓存
 CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.1.211:16379/12",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": "aXZw19d7CWh0Fnk0a",
-            "SOCKET_CONNECT_TIMEOUT": 5,  # 创建连接的超时时间，单位为秒
-            "SOCKET_TIMEOUT": 5,  # r/w redis读写的超时时间，单位为秒
-            'MAX_ENTRIES': 10000,
-            'KEY_PREFIX': 'recruit-',
-        }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
-# Channel 的公司redis
+# 设置 Channels 的内存通道层
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('redis://:aXZw19d7CWh0Fnk0a@192.168.1.211:16379/12')],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# # django的公司redis
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://192.168.1.211:16379/12",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             "PASSWORD": "aXZw19d7CWh0Fnk0a",
+#             "SOCKET_CONNECT_TIMEOUT": 5,  # 创建连接的超时时间，单位为秒
+#             "SOCKET_TIMEOUT": 5,  # r/w redis读写的超时时间，单位为秒
+#             'MAX_ENTRIES': 10000,
+#             'KEY_PREFIX': 'recruit-',
+#         }
+#     }
+# }
+
+# # Channel 的公司redis
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('redis://:aXZw19d7CWh0Fnk0a@192.168.1.211:16379/12')],
+#         },
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

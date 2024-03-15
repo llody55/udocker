@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>容器终端</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script> -->
+    <link href="/static/layui/css/layui.css" rel="stylesheet" /> 
+    <link rel="stylesheet" href="/static/xterm/xterm.css" />
+    <script src="/static/xterm/xterm.js"></script>
+    <style>
+        body {
+          margin: 10px;
+        }
+        /* 标题样式 */
+        .layui-card-header {
+          background-color: #f2f2f2;
+          /* 修改标题背景颜色 */
+          color: #333;
+          /* 修改标题文字颜色 */
+          font-size: 16px;
+          /* 修改标题文字大小 */
+          border-bottom: 1px solid #e6e6e6;
+          /* 在标题下方添加边框线 */
+          line-height: 36px;
+          /* 调整行高 */
+        }
+      </style>
+</head>
+
+<body>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-row">
+                <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header">容器终端</div>
+                        <div class="layui-card-body layui-bg-gray">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Command</label>
+                                <div class="layui-input-inline">
+                                    <select name="command" lay-verify="required">
+                                        <option value="/bin/sh" selected>/bin/sh</option>
+                                        <option value="/bin/bash">/bin/bash</option>
+                                        <option value="/bin/ash">/bin/ash</option>
+                                      </select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">{{msg}}</div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">User</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="user" value="root" autocomplete="off" placeholder="请输入" lay-verify="required|name" class="layui-input" />
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 底部按钮 -->
+                <div class="submit-btn-fixed">
+                    <button type="button" id="connect-btn" class="layui-btn" lay-submit lay-filter="formSubmit">连接</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="terminal" v-loading="loading" element-loading-text="拼命连接中"></div>
+</body>
+<script src="/static/layui/layui.js"></script>
+<script>
+layui.use(['form', 'jquery'], function () {
+    var form = layui.form;
+    var $ = layui.jquery;
+    var ws;
+    var  containers = '{{ connect.containers }}';
+    var  container_id = '{{ connect.container_id }}';
+    var term = new Terminal({
+        cursorBlink: true, // 光标闪烁
+        lineHeight: 1.2,  //行高
+        fontSize: 12,  //字体大小
+        rows: 70, //高度
+        cols: 70, //宽度
+        cursorStyle: 'underline', // 光标样式
+        scrollback: 100,
+        tabStopWidth: 4,
+        fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace", //字体
+        convertEol: true, //启用时，光标将设置为下一行的开头
+        disableStdin: false, //是否禁用输入
+        theme: {  //主题
+            background: '#181d28',  //背景
+            foreground: '#FFF',  //前景
+            cursor: 'help' //设置光标
+            
+        }
+    });
+    // 显示终端区域的函数
+    function showTerminal() {
+        $('#terminal').show();
+    }
+
+    // 隐藏终端区域的函数
+    function hideTerminal() {
+        $('#terminal').hide();
+    }
+    // 更新终端显示状态和按钮文本的函数
+    function updateTerminalDisplay(isConnected) {
+        if (isConnected) {
+            $('#connect-btn').text('断开连接');
+            showTerminal();
+        } else {
+            $('#connect-btn').text('连接');
+            hideTerminal();
+        }
+    }
+    function initializeWebSocket() {
+        term.open(document.getElementById('terminal'));
+        term.clear(); //清除之前的连接
+            
+        // 获取表单选项
+        var command = $('[name="command"]').val();
+            
+        var user = $('[name="user"]').val();
+        //console.log("获取到的内容:" +command + user )
+        // 创建WebSocket连接
+        //var wsUrl = 'ws://localhost:8000/terminal?container=' + container_id + '&workdir=/&cmd=' + command;
+        var wsUrl = 'ws://' + window.location.host + '/apps/docker_terminal/'+ '?container=' + container_id + '&workdir=/&cmd=' + command;
+        ws = new WebSocket(wsUrl);
+        ws.onopen = function () {
+            updateTerminalDisplay(true);
+        };
+    
+        ws.onmessage = function (event) {
+            term.write(event.data);
+        };
+    
+        ws.onclose = function () {
+            updateTerminalDisplay(false);
+        };
+    
+        ws.onerror = function () {
+            console.error("WebSocket error observed:", e);
+        };
+    
+        term.onData(function (data) {
+            ws.send(data);
+        });
+        
+    }
+    // 按钮事件监听
+    $('#connect-btn').on('click', function() {
+        var currentText = $(this).text();
+        if (currentText === '连接') {
+            initializeWebSocket(); // 如果按钮显示“连接”，则尝试连接
+        } else if (currentText === '断开连接' && ws) {
+            ws.close(); // 如果按钮显示“断开连接”，则关闭WebSocket连接
+        }
+    });
+    // 确保连接关闭时也更新按钮文本
+    window.onbeforeunload = function() {
+        if(ws) {
+            ws.close();
+        }
+    };
+    
+});
+</script>
+</html>

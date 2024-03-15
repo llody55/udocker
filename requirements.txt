@@ -1,7 +1,10 @@
+docker==6.0.1
 channels==3.0.5
 cryptography==41.0.5
 Django==3.2.15
-docker_py==1.10.6
 humanize==4.9.0
 loguru==0.7.2
 python_dateutil==2.8.2
+pysqlite3==0.5.2
+pysqlite3-binary==0.5.2.post3
+urllib3~=1.26.18

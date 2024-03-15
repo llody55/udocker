@@ -13,6 +13,11 @@
         body {
           margin: 10px;
         }
+        .readonly-input {
+            background-color: #e9ecef; /* 灰色背景 */
+            color: #495057; /* 深色文字 */
+            cursor: not-allowed; /* 显示不允许的光标 */
+          }
         /* 标题样式 */
         .layui-card-header {
           background-color: #f2f2f2;
@@ -33,12 +38,6 @@
     <div class="layui-card">
         <div class="layui-card-body">
             <div class="layui-row">
-                <div class="layui-col-md12">
-                    <fieldset class="layui-elem-field layui-field-title">
-                        <legend>容器终端</legend>
-                    </fieldset>
-                </div>
-
                 <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
                 <div class="layui-col-md12">
                     <div class="layui-card">
@@ -63,6 +62,17 @@
                                 </div>
                                 <div class="layui-form-mid layui-text-em layui-font-red">开发中，默认即可</div>
                             </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">地址</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="ipv4"  autocomplete="off" placeholder="示例：192.168.1.160" lay-verify="required|ipv4" class="layui-input readonly-input" readonly/>
+                                </div>
+                                <div class="layui-form-mid">:</div>
+                                <div class="layui-input-inline" style="width: 50px;">
+                                    <input type="text" name="port" value="8000" autocomplete="off" placeholder="示例：8000" lay-verify="required|port" class="layui-input readonly-input" readonly/>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">请前往【用户中心】进行设置初始值,如已设置，连接出错，可F11查看错误信息</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -78,119 +88,190 @@
 </body>
 <script src="/static/layui/layui.js"></script>
 <script>
-layui.use(['form', 'jquery'], function () {
-    var form = layui.form;
-    var $ = layui.jquery;
-    var ws;
-    var  containers = '{{ connect.containers }}';
-    var  container_id = '{{ connect.container_id }}';
-    var term = new Terminal({
-        cursorBlink: true, // 光标闪烁
-        lineHeight: 1.2,  //行高
-        fontSize: 12,  //字体大小
-        rows: 70, //高度
-        cols: 70, //宽度
-        cursorStyle: 'underline', // 光标样式
-        scrollback: 100,
-        tabStopWidth: 4,
-        fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace", //字体
-        convertEol: true, //启用时，光标将设置为下一行的开头
-        disableStdin: false, //是否禁用输入
-        theme: {  //主题
-            background: '#181d28',  //背景
-            foreground: '#FFF',  //前景
-            cursor: 'help' //设置光标
-            
+    document.addEventListener('DOMContentLoaded', function () {
+        // 从localStorage获取IP地址和端口
+        var storedIpAddress = localStorage.getItem('webSocketIP');
+        var storedPort = localStorage.getItem('webSocketPort');
+        // 如果存储有IP地址和端口，则设置为表单输入字段的值
+        if(storedIpAddress && storedPort) {
+            document.querySelector('input[name="ipv4"]').value = storedIpAddress;
+            document.querySelector('input[name="port"]').value = storedPort;
         }
-    });
-    // 显示终端区域的函数
-    function showTerminal() {
-        $('#terminal').show();
-    }
-
-    // 隐藏终端区域的函数
-    function hideTerminal() {
-        $('#terminal').hide();
-    }
-    // 更新终端显示状态和按钮文本的函数
-    function updateTerminalDisplay(isConnected) {
-        if (isConnected) {
-            $('#connect-btn').text('断开连接');
-            showTerminal();
-        } else {
-            $('#connect-btn').text('连接');
-            hideTerminal();
-        }
-    }
-    function initializeWebSocket() {
-        term.open(document.getElementById('terminal'));
-        term.clear(); //清除之前的连接
+        layui.use(['form', 'jquery'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+            var layer = layui.layer;
+            var ws;
+            var retryCount = 0;
+            var maxRetries = 3; // 最大重试次数
+            var  containers = '{{ connect.containers }}';
+            var  container_id = '{{ connect.container_id }}';
+            // 更新渲染
+            form.render();
             
-        // 获取表单选项
-        var command = $('[name="command"]').val();
             
-        var user = $('[name="user"]').val();
-        //console.log("获取到的内容:" +command + user )
-
-        // 创建WebSocket连接
-        var wsUrl = 'ws://localhost:8000/terminal?container=' + container_id + '&workdir=/&cmd=' + command;
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = function () {
-            console.log('WebSocket connection established');
-            term.write('欢迎使用udocker终端，连接成功！！！.\r\n');
-            $('#connect-btn').text('断开连接');
-            showTerminal(); // 显示终端区域
-            term.focus(); // 自动聚焦到终端上
-        };
-
-        ws.onmessage = function (event) {
-                term.write(event.data);
-        };
-
-        ws.onclose = function () {
-            console.log('WebSocket connection closed');
-            term.write('\r\n连接已断开.\r\n'); // 提示用户连接状态
-            $('#connect-btn').text('连接');
-            updateTerminalDisplay(false);
-        };
-
-        ws.onerror = function (error) {
-            if (error.wasClean) {
-                term.write('\n\r\x1B[1;3;31m断开连接！\x1B[0m');
-                console.log('WebSocket error: ', error);
-                $('#connect-btn').text('连接'); // 更新按钮文本
-                updateTerminalDisplay(false);
-            }else{
-                term.write('\n\r\x1B[1;3;31m终端服务未正常运行，连接关闭！\x1B[0m');
-                console.log('WebSocket error: ', error);
-                $('#connect-btn').text('连接'); // 更新按钮文本
-                updateTerminalDisplay(false);
-            }        
-        };
-
-        term.onData(function (data) {
-            if(ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(data);
+            // 自定义验证规则
+            form.verify({
+                ipv4: function (value, item) {
+                  //value：表单的值、item：表单的DOM对象
+                  if (!/^((25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})\.){3}(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})$/.test(value)){
+                    return '请输入有效的IPv4地址'
+                  }
+                },
+                // 验证端口，只能为数字且不能超过65535
+                port: function (value) {
+                  if (!/^\d+$/.test(value)) {
+                    return '端口号只能为数字'
+                  }
+                  if (parseInt(value) > 65535) {
+                    return '端口号不能超过65535'
+                  }
+                }
+            })
+            var term = new Terminal({
+                cursorBlink: true, // 光标闪烁
+                lineHeight: 1.2,  //行高
+                fontSize: 12,  //字体大小
+                rows: 70, //高度
+                cols: 70, //宽度
+                cursorStyle: 'underline', // 光标样式
+                scrollback: 100,
+                tabStopWidth: 4,
+                fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace", //字体
+                convertEol: true, //启用时，光标将设置为下一行的开头
+                disableStdin: false, //是否禁用输入
+                theme: {  //主题
+                    background: '#181d28',  //背景
+                    foreground: '#FFF',  //前景
+                    cursor: 'help' //设置光标
+                    
+                }
+            });
+            // 显示终端区域的函数
+            function showTerminal() {
+                $('#terminal').show();
             }
+        
+            // 隐藏终端区域的函数
+            function hideTerminal() {
+                $('#terminal').hide();
+            }
+            // 更新终端显示状态和按钮文本的函数
+            function updateTerminalDisplay(isConnected) {
+                $('#connect-btn').text(isConnected ? '断开连接' : '连接');
+                if (isConnected) {
+                    showTerminal();
+                } else {
+                    hideTerminal();
+                    ws = null; // 关闭连接时清理WebSocket对象
+                }
+            }
+            function clearAndRetry() {
+                console.log('清空终端内容，并准备重新连接');
+                term.clear();
+                
+            }
+            function initializeWebSocket() {
+                term.open(document.getElementById('terminal'));
+                //term.clear(); //清除之前的连接
+                    
+                // 获取表单选项
+                var command = $('[name="command"]').val();
+                    
+                var user = $('[name="user"]').val();
+                var ipv4 = $('[name="ipv4"]').val();
+                var port = $('[name="port"]').val();
+                //console.log("获取到的内容:" +command + user )
+                // 创建WebSocket连接
+                var wsUrl = 'ws://'+ipv4+':'+port+'/terminal?container=' + container_id + '&workdir=/&cmd=' + command;
+                console.log("请求地址：" +wsUrl)
+                //var wsUrl = 'ws://' + window.location.host + '/apps/docker_terminal/'+ '?container=' + container_id + '&workdir=/&cmd=' + command;
+                ws = new WebSocket(wsUrl);
+        
+                ws.onopen = function () {
+                    console.log('WebSocket connection established');
+                    term.write('欢迎使用udocker终端，连接成功！！！.\r\n');
+                    $('#connect-btn').text('断开连接');
+                    updateTerminalDisplay(true);
+                    term.focus(); // 自动聚焦到终端上
+                };
+        
+                ws.onmessage = function (event) {
+                    term.write(event.data);
+                };
+        
+                ws.onclose = function (event) {
+                    // 连接关闭时的处理逻辑
+                    console.log('WebSocket连接已关闭', event);
+                    layer.msg('连接中断');
+                    term.write('\n\r\x1B[1;3;31m断开连接！\x1B[0m');
+                    updateTerminalDisplay(false); // 更新终端显示为未连接状态
+                };
+        
+                ws.onerror = function (error) {
+                    console.log('WebSocket error: ', error);
+                    layer.msg('连接出现错误，请检查日志');
+                    term.write('\n\r\x1B[1;3;31m断开连接！\x1B[0m');
+                    clearAndRetry();      
+                };
+        
+                term.onData(function (data) {
+                    if(ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(data);
+                    }
+                });
+            }
+            // 添加一个表单验证函数
+            function formValidation() {
+                // 获取表单字段的值
+                var ipv4 = $('[name="ipv4"]').val();
+                var port = $('[name="port"]').val();
+                // 这里复用了之前的form.verify中的验证规则
+                var ipv4Regex = /^((25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})\.){3}(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})$/;
+                var portRegex = /^\d+$/;
+                if (!ipv4Regex.test(ipv4)) {
+                    layer.msg('请输入有效的IPv4地址');
+                    return false;
+                }
+                if (!portRegex.test(port) || parseInt(port) > 65535) {
+                    layer.msg('端口号只能为数字且不能超过65535');
+                    return false;
+                }
+                return true; // 所有验证通过返回true
+            }
+            // 按钮事件监听
+            $('#connect-btn').on('click', function() {
+                var currentText = $(this).text();
+                if (currentText === '连接') {
+                    // 在尝试建立新连接之前，检查并关闭任何现有的连接
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.close(); // 关闭现有的WebSocket连接
+                    }
+                    ws = null; // 清除WebSocket对象
+            
+                    // 进行表单验证
+                    var isValid = formValidation();
+                    if (isValid) {
+                        initializeWebSocket(); // 如果表单验证通过，则尝试连接
+                    } else {
+                        // 如果表单验证不通过，可以在这里添加一些用户提示信息
+                        console.log('表单验证失败，请检查输入信息。');
+                    }
+                } else if (currentText === '断开连接' && ws) {
+                    ws.close(); // 如果按钮显示“断开连接”，则关闭WebSocket连接
+                    ws = null; // 清除WebSocket对象
+                    updateTerminalDisplay(false);
+                }
+            });
+            // 确保连接关闭时也更新按钮文本
+            window.onbeforeunload = function() {
+                if(ws) {
+                    ws.close();
+                }
+            };
+            
         });
-    }
-    // 按钮事件监听
-    $('#connect-btn').on('click', function() {
-        var currentText = $(this).text();
-        if (currentText === '连接') {
-            initializeWebSocket(); // 如果按钮显示“连接”，则尝试连接
-        } else if (currentText === '断开连接' && ws) {
-            ws.close(); // 如果按钮显示“断开连接”，则关闭WebSocket连接
-        }
-    });
-    // 确保连接关闭时也更新按钮文本
-    window.onbeforeunload = function() {
-        if(ws) {
-            ws.close();
-        }
-    };
-    
-});
+    })
+
 </script>
 </html>
