@@ -1,8 +1,0 @@
-{
-    "window.zoomLevel": 0,
-    "terminal.integrated.rendererType": "dom",
-    "editor.suggest.snippetsPreventQuickSuggestions": false,
-    "files.associations": {
-        "*.vue":"html"
-    }
-}
