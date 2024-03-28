@@ -199,10 +199,23 @@ def docker_container_api(request):
                     restart_count = container.attrs['RestartCount']
                     # 确定开关按钮的状态，'always'则为开启，其它情况则为关闭
                     restart_switch = restart_policy == 'always'
+                    # 获取容器配置中的健康检查状态
+                    healthcheck = container.attrs['Config'].get('Healthcheck', None)
+                    if healthcheck:
+                        # 如果存在健康检查配置
+                        health_data = container.attrs['State'].get('Health', None)
+                        if health_data:
+                            # 获取健康检查的当前状态
+                            health_status = health_data.get('Status', '未知')
+                            # print(f"健康检查状态: {health_status}")
+                        else:
+                            health_status = None
+                    else:
+                        health_status = None
                     time_str = container.attrs['Created']
                     time_obj = parser.isoparse(time_str)
                     create_time = time_obj.strftime('%Y-%m-%d %H:%M:%S')
-                    dat = {"id":id,"name":name,"image":image,"isrunning":isrunning,"restart_switch":restart_switch,"restart_count":restart_count,"status":status,"create_time":create_time,"ports_data":ports_data}
+                    dat = {"id":id,"name":name,"image":image,"isrunning":isrunning,"restart_switch":restart_switch,"restart_count":restart_count,"status":status,"create_time":create_time,"ports_data":ports_data,"health_status":health_status}
                     # 根据查询关键字返回数据
                     if search_key:
                         if search_key in name:

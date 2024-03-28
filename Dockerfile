@@ -1,21 +1,32 @@
-FROM python:3.9.10
+# 第一阶段
+FROM python:3.9.10-slim as builder
+ENV PIP_CACHE_DIR=/app/.cache \
+    LANG=en_GB.UTF-8 \
+    DOCKER_HOST=unix:///var/run/docker.sock
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc6-dev \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && \
+    python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
+
+# 第二阶段
+FROM python:3.9.10-slim
 
 MAINTAINER llody55
 
-ENV PIP_CACHE_DIR /app/.cache
-
-ENV LANG en_GB.UTF-8
-
-ENV DOCKER_HOST=unix:///var/run/docker.sock
+COPY --from=builder /usr/local/lib/python3.9 /usr/local/lib/python3.9
 
 WORKDIR /app
 
 COPY . /app
 
-RUN pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && \
-    python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
-
 RUN chmod +x start.sh
+
 EXPOSE 9002
 EXPOSE 8000
 

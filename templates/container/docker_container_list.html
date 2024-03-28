@@ -109,7 +109,8 @@
                 , { field: 'id', title: '容器ID', sort: true }
                 , { field: 'name', title: '容器名称<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
                 , { field: 'image', title: '容器镜像', sort: true }
-                , { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
+                //, { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
+                , { field: 'health_status', title: '健康检查<i class="layui-icon layui-icon-survey layui-font-14" title="只标记容器健康状态" style="margin-left: 5px;"></i>', width: 110, templet: health_statusFormat }
                 , { field: 'status', title: '运行状态', width: 100, templet: statusFormat }
                 , { field: 'restart_count', title: '重启次数', width: 100, templet: restartFormat}
                 // , { field: 'restart_switch', title: '重启策略', width: 100 }
@@ -139,14 +140,21 @@
             }
         });
         // 健康状态格式化
-        function isrunningFormat(d) {
+        function health_statusFormat(d) {
             result = "";
-            if (d.isrunning == true) {
+            console.log("状态:" + d.health_status)
+            if (d.health_status == 'healthy') {
                 //给返回值加个样式
                 result = '<span class="layui-badge layui-bg-green">健康</span>'
                 return result
+            }else if (d.health_status == 'unhealthy'){
+                result = '<span class="layui-badge layui-bg-red">探测失败</span>'
+                return result
+            }else if (d.health_status == 'starting'){
+                result = '<span class="layui-badge layui-bg-orange">启动中</span>'
+                return result
             } else {
-                result = '<span class="layui-badge layui-bg-red">不健康</span>'
+                result = '-'
                 return result
             }
         }

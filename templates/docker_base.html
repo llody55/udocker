@@ -130,13 +130,13 @@
                 </ul>
             <ul class="layui-nav layui-layout-right">
                 {% if request.user.username %}
-                <li class="layui-nav-item layui-hide layui-show-md-inline-block ">
+                <li class="layui-nav-item layui-hide layui-show-md-inline-block " id="message" lay-filter="message">
                     <a href="javascript:;">消息&nbsp;<i class="layui-icon layui-icon-notice" style="color: black;"></i><span
                             class="layui-badge layui-bg-orange">6</span></a>
                 </li>
                 <li class="layui-nav-item layui-hide layui-show-md-inline-block">
                     <a href="javascript:;" style="color: black;">
-                        <img src="http://pt.llody.top:1080/llody.jpg" class="layui-nav-img" />
+                        <img src="https://static.llody.top/images/DM_20240323220512_001.png" class="layui-nav-img" />
                         {{ request.user.username }}
                     </a>
                     <dl class="layui-nav-child">
@@ -203,7 +203,7 @@
 
         <div class="layui-footer" style="text-align: center">
             <!-- 底部固定区域 -->
-            Udockers控制台 ©2023 llody Version:0.0.1 &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/DM_20240323222423_001_00001_1.ico">
+            Udockers控制台 ©2023 llody Version:1.0-base &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/DM_20240323222423_001_00001_1.ico">
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
@@ -326,8 +326,10 @@
                 });
             });
 
-
-
+            //监听消息模块
+            $('#message').on('click', function () {
+                layer.msg("开发中。。。。",{ icon: 6 } )
+            })
         });
     </script>
 </body>
