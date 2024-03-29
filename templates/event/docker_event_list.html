@@ -82,7 +82,7 @@
             elem: '#demo' // 选择table元素
             , url: "{% url 'docker_event_api' %}"  //数据接口, namespace值从当前session中获取
             , page: true //开启分页
-            , toolbar: 'default'
+            , toolbar: '#demoTable'
             , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
                 title: '提示'
                 , layEvent: 'LAYTABLE_TIPS'
