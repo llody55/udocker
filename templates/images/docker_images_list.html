@@ -102,8 +102,8 @@
             }]
             , cols: [[ //表头
                 { type: 'checkbox', fixed: 'left' }   //全选按钮
-                , { field: 'image_id', title: '镜像ID', sort: true }
-                , { field: 'image_tag', title: '镜像 Tag', sort: true } //hide:true 隐藏某一列的信息
+                , { field: 'image_id', title: '镜像ID'}
+                , { field: 'image_tag', title: '镜像 Tag<i class="layui-icon layui-icon-survey layui-font-14" title="none状态的镜像将不会显示" style="margin-left: 5px;"></i>'} //hide:true 隐藏某一列的信息
                 , { field: 'image_in_use', title: '占用情况', sort: true ,templet: image_in_useFormat}
                 , { field: 'image_size', title: '镜像大小', sort: true }
                 , { field: 'image_create_time', title: '创建时间', sort: true }
@@ -182,6 +182,7 @@
 
         //监听自定义头工具栏事件
         table.on('toolbar(test)', function (obj) {
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
             switch (obj.event) {
                 case 'add':
                     layer.open({
@@ -200,7 +201,34 @@
                     //window.location.href = '{% url "docker_images_pull" %}'
                     break;
                 case 'clear':
-                    layer.msg("臣尽力在做了，莫慌",{icon:5})
+                    layer.confirm('确认清理悬虚镜像吗？</br><span style="color: red">请注意，此此操作不可逆</span>', function (index) {
+                        // 显示 loading 效果
+                        var loadingIndex = layer.load(3);
+                        layer.msg('开始清理，请稍候...', {time: 2000});
+                        $.ajax({
+                            type: "CLEAR",
+                            url: '{% url "docker_images_api" %}',
+                            headers: { 'X-CSRFToken': csrf_token },
+                            success: function (result) {
+                                if (result.code == '0') {
+                                    // 关闭 loading 效果
+                                    layer.close(loadingIndex);
+                                    // 显示拉取镜像开始的消息
+                                    layer.msg(result.msg, {time: 3000}, { icon: 6 });
+                                } else {
+                                    // 关闭 loading 效果
+                                    layer.close(loadingIndex);
+                                    // 显示错误消息
+                                    layer.msg(result.msg, {time: 2000});
+                                }
+                            },
+                            error: function () {
+                                layer.msg("服务器接口异常！", { icon: 5 })
+                                layer.close(loadingIndex);
+                            }
+                        })
+                        layer.close(index);
+                    });
                     break
             }
         })

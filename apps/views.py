@@ -766,6 +766,7 @@ def docker_images_api(request):
                                 data.append(dat)
                         else:
                             data.append(dat)
+                
             code = 0
             msg = "查询成功."
         except Exception as e:
@@ -918,6 +919,21 @@ def docker_images_api(request):
 
         result = {'code': code, 'msg': msg}
         return JsonResponse(result)
+    elif request.method == "CLEAR":
+        try:
+            #容器管理模块API
+            success, client = docker_mod.connect_to_docker()
+            if success:
+                # 获取所有镜像
+                images = client.images.list(all=True)
+                # 遍历镜像列表
+                for image in images:
+                    if '<none>:<none>' in image.attrs['RepoTags']:
+                        print("无tag:",image.id)
+            result = {'code': 0, 'msg': "删除成功"}
+            return JsonResponse(result)
+        except DockerException as e:
+            logger.error(e)
 
 @login_required
 def docker_images_pull(request):
