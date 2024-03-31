@@ -349,6 +349,28 @@ def docker_container_api(request):
         # 返回响应到客户端
         result = {'code': code, 'msg': msg}
         return JsonResponse(result)
+    elif request.method == "CLEAR":
+        try:
+            #容器管理模块API
+            success, client = docker_mod.connect_to_docker()
+            if success:
+                containers = client.containers.list(all=True)
+                for container in containers:
+                    status = container.status
+                    if status != 'running':
+                        con_restart = client.containers.get(container.name)
+                        con_restart.remove(force=True)  
+                        print("清理容器：",container.name)
+            code = 0
+            msg = "清理成功"
+        except DockerException as e:
+            logger.error(e)
+            code = 1
+            msg = f"报错了：{e}"
+        
+        # 返回响应到客户端
+        result = {'code': code, 'msg': msg}
+        return JsonResponse(result)
 
 # docker容器详情信息API
 @csrf_exempt
@@ -928,12 +950,19 @@ def docker_images_api(request):
                 images = client.images.list(all=True)
                 # 遍历镜像列表
                 for image in images:
-                    if '<none>:<none>' in image.attrs['RepoTags']:
-                        print("无tag:",image.id)
-            result = {'code': 0, 'msg': "删除成功"}
-            return JsonResponse(result)
+                    #print("镜像tag状态:",image.attrs['RepoTags'])
+                    if image.attrs['RepoTags'] is None or not image.attrs['RepoTags']:
+                        client.images.remove(image.id, force=True)
+                        print(f'已删除镜像: {image.id}')
+            code = 0
+            msg = "清理完成"             
         except DockerException as e:
             logger.error(e)
+            code = 0
+            msg = f"报错了:{e}"
+        result = {'code': code, 'msg': msg}
+        return JsonResponse(result)
+            
 
 @login_required
 def docker_images_pull(request):

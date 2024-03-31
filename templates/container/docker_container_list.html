@@ -93,7 +93,7 @@
         layer.load();
         setTimeout(function () {
             layer.closeAll('loading');
-        }, 2000);
+        }, 1000);
         table.render({
             elem: '#demo' // 选择table元素
             , url: "{% url 'docker_container_api' %}"  //数据接口, namespace值从当前session中获取
@@ -142,7 +142,6 @@
         // 健康状态格式化
         function health_statusFormat(d) {
             result = "";
-            console.log("状态:" + d.health_status)
             if (d.health_status == 'healthy') {
                 //给返回值加个样式
                 result = '<span class="layui-badge layui-bg-green">健康</span>'
@@ -496,6 +495,7 @@
 
         //监听自定义头工具栏事件
         table.on('toolbar(test)', function (obj) {
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
             switch (obj.event) {
                 case 'add':
                     layer.open({
@@ -513,7 +513,37 @@
                     });
                     break;
                 case 'clear':
-                    layer.msg("臣尽力在做了，莫慌",{icon:5})
+                    layer.confirm('确认清理<span style="color: red">未运行的</span>容器吗？</br><span style="color: red">请注意，此操作不可逆</span>', function (index) {
+                        // 显示 loading 效果
+                        var loadingIndex = layer.load(3);
+                        layer.msg('开始清理，请稍候...', {time: 2000});
+                        $.ajax({
+                            type: "CLEAR",
+                            url: '{% url "docker_container_api" %}',
+                            headers: { 'X-CSRFToken': csrf_token },
+                            success: function (result) {
+                                if (result.code == '0') {
+                                    // 关闭 loading 效果
+                                    layer.close(loadingIndex);
+                                    // 显示拉取镜像开始的消息
+                                    layer.msg(result.msg, { icon: 6, time: 2000 }, function () {
+                                        // 重新加载页面
+                                        window.location.reload()
+                                    });
+                                } else {
+                                    // 关闭 loading 效果
+                                    layer.close(loadingIndex);
+                                    // 显示错误消息
+                                    layer.msg(result.msg, {time: 2000});
+                                }
+                            },
+                            error: function () {
+                                layer.msg("服务器接口异常！", { icon: 5 })
+                                layer.close(loadingIndex);
+                            }
+                        })
+                        layer.close(index);
+                    });
                     break
             }
         })
