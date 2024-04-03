@@ -133,27 +133,37 @@
                 layer.msg("臣尽力在做了，莫慌",{icon:5})
             } else if (obj.event === 'delete') {
                 layer.confirm('真的要删除<span style="color: red">【' + data.image_tag + '】</span>这个镜像吗？</br><span style="color: red">请注意，此删除为真正意义上的删除!!!</span>', function (index) {
-                                $.ajax({
-                                    type: "DELETE",
-                                    url: '{% url "docker_images_api" %}?image_id=' + data.image_id,
-                                    data: data,
-                                    headers: { 'X-CSRFToken': csrf_token },
-                                    success: function (result) {
-                                        if (result.code == '0') {
-                                            obj.del();  // 临时删除当前页面记录
-                                            layer.msg(result.msg, { icon: 6 })
-                                        } else {
-                                            layer.msg(result.msg, { icon: 5 })
-                                        }
-                                    },
-                                    error: function () {
-                                        layer.msg("服务器接口异常！", { icon: 5 })
-                                    }
-                                })
-                                layer.close(index);
-                            });
+                    // 显示 loading 效果
+                    var loadingIndex = layer.load(3);
+                    $.ajax({
+                        type: "DELETE",
+                        url: '{% url "docker_images_api" %}?image_id=' + data.image_id,
+                        data: data,
+                        headers: { 'X-CSRFToken': csrf_token },
+                        success: function (result) {
+                            if (result.code == '0') {
+                                obj.del();  // 临时删除当前页面记录
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
+                                layer.msg(result.msg, { icon: 6 })
+                            } else {
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
+                                layer.msg(result.msg, { icon: 5 })
+                            }
+                        },
+                        error: function () {
+                            // 关闭 loading 效果
+                            layer.close(loadingIndex);
+                            layer.msg("服务器接口异常！", { icon: 5 })
+                        }
+                    })
+                    layer.close(index);
+                });
             }else if (obj.event === 'forcedelete') {
                 layer.confirm('真的要<span style="color: red">强制</span>删除<span style="color: red">【' + data.image_tag + '】</span>这个镜像吗？</br><span style="color: red">请注意，此删除将包含子镜像</span>', function (index) {
+                    // 显示 loading 效果
+                    var loadingIndex = layer.load(3);
                     $.ajax({
                         type: "FORCEDELETE",
                         url: '{% url "docker_images_api" %}?image_id=' + data.image_id,
@@ -162,12 +172,18 @@
                         success: function (result) {
                             if (result.code == '0') {
                                 obj.del();  // 临时删除当前页面记录
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
                                 layer.msg(result.msg, { icon: 6 })
                             } else {
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
                                 layer.msg(result.msg, { icon: 5 })
                             }
                         },
                         error: function () {
+                            // 关闭 loading 效果
+                            layer.close(loadingIndex);
                             layer.msg("服务器接口异常！", { icon: 5 })
                         }
                     })
@@ -201,7 +217,7 @@
                     //window.location.href = '{% url "docker_images_pull" %}'
                     break;
                 case 'clear':
-                    layer.confirm('确认清理悬虚镜像吗？</br><span style="color: red">请注意，此此操作不可逆</span>', function (index) {
+                    layer.confirm('确认清理【none】镜像吗？</br><span style="color: red">请注意，此此操作不可逆</span>', function (index) {
                         // 显示 loading 效果
                         var loadingIndex = layer.load(3);
                         layer.msg('开始清理，请稍候...', {time: 2000});
