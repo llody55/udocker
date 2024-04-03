@@ -55,7 +55,7 @@
                 <script type="text/html" id="demoTable">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
                     <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">拉取镜像</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理镜像</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理【none】镜像</button>
                     {% endif %}
                 </script>
                 <!--  行工具 -->
@@ -88,7 +88,7 @@
         layer.load();
         setTimeout(function () {
             layer.closeAll('loading');
-        }, 2000);
+        }, 1000);
         table.render({
             elem: '#demo' // 选择table元素
             , url: "{% url 'docker_images_api' %}"  //数据接口, namespace值从当前session中获取
@@ -103,7 +103,7 @@
             , cols: [[ //表头
                 { type: 'checkbox', fixed: 'left' }   //全选按钮
                 , { field: 'image_id', title: '镜像ID'}
-                , { field: 'image_tag', title: '镜像 Tag<i class="layui-icon layui-icon-survey layui-font-14" title="none状态的镜像将不会显示" style="margin-left: 5px;"></i>'} //hide:true 隐藏某一列的信息
+                , { field: 'image_tag', title: '镜像 Tag<i class="layui-icon layui-icon-survey layui-font-14" title="none的无tag镜像将不会显示" style="margin-left: 5px;"></i>'} //hide:true 隐藏某一列的信息
                 , { field: 'image_in_use', title: '占用情况', sort: true ,templet: image_in_useFormat}
                 , { field: 'image_size', title: '镜像大小', sort: true }
                 , { field: 'image_create_time', title: '创建时间', sort: true }
