@@ -1,107 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
- <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script
-   src="https://kit.fontawesome.com/64d58efce2.js"
-   crossorigin="anonymous"
-  ></script>
-  <link rel="stylesheet" href="/static/login/css/styles.css" />
-  <title>登录</title>`
-  
- </head>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>登录3</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
- <body>
-  <div class="container">
-   <div class="forms-container">
-    <div class="signin-signup">
-     <form action="{% url 'user_login' %}" method="post" class="sign-in-form">
-     {% csrf_token %}
-      <h2 class="title">登录</h2>
-      <div class="input-field">
-       <i class="fas fa-user"></i>
-       <input type="text" id="username" name="username" placeholder="Username" />
-      </div>
-      <div class="input-field">
-       <i class="fas fa-lock"></i>
-       <input type="password" id="password" name="password" placeholder="Password" />
-      </div>
-      <input class="btn solid" type="submit" value="Login" />
-      <div class="social-media"><span style="color:red;">{{ msg }}</span></div>
-      {% comment %} <p class="social-text">或者使用其他平台账户登录</p>
-      <div class="social-media">
-       <a href="#" class="social-icon">
-        <i class="fab fa-facebook-f"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-twitter"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-google"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-linkedin-in"></i>
-       </a>
-      </div> {% endcomment %}
-     </form>
-     <form action="#" class="sign-up-form">
-      <h2 class="title">注册</h2>
-      <div class="input-field">
-       <i class="fas fa-user"></i>
-       <input type="text" placeholder="Username" />
-      </div>
-      <div class="input-field">
-       <i class="fas fa-envelope"></i>
-       <input type="email" placeholder="Email" />
-      </div>
-      <div class="input-field">
-       <i class="fas fa-lock"></i>
-       <input type="password" placeholder="Password" />
-      </div>
-      <input type="submit" class="btn" value="Sign up" />
-      {% comment %} <p class="social-text">或者使用其他平台账户登录</p>
-      <div class="social-media">
-       <a href="#" class="social-icon">
-        <i class="fab fa-facebook-f"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-twitter"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-google"></i>
-       </a>
-       <a href="#" class="social-icon">
-        <i class="fab fa-linkedin-in"></i>
-       </a>
-      </div> {% endcomment %}
-     </form>
-    </div>
-   </div>
+      body {
+        height: 100vh;
+        background-color: aquamarine;
+        background: url("https://www4.bing.com//th?id=OHR.BodieNC_ZH-CN9027999004_1920x1080.jpg&rf=LaDigue_1920x1080.jpg&pid=hp") no-repeat;
+        background-size: cover;
+      }
 
-   <div class="panels-container">
-    <div class="panel left-panel">
-     <div class="content">
-      <h3>没有账号？</h3>
-      <p>
-        点击去注册一个.
-      </p>
-      <button class="btn transparent" id="sign-up-btn">注册</button>
-     </div>
-     <img src="/static/login/img/log.svg" class="image" alt="" />
+      .Box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 550px;
+        height: 330px;
+        display: flex;
+      }
+
+      .left {
+        position: relative;
+        width: 50%;
+        height: 100%;
+        background-color: rgba(57, 99, 134, 0.65);
+      }
+
+      .right {
+        position: relative;
+        width: 50%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .centerBox {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        text-align: center;
+      }
+
+      .left img {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 5px;
+      }
+
+      .left p {
+        font-size: 14px;
+        color: #fff;
+      }
+
+      .left h4 {
+        font-size: 18px;
+        color: #fff;
+        margin-bottom: 10px;
+      }
+
+      .right form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        text-align: center;
+      }
+
+      h3 {
+        margin-bottom: 20px;
+      }
+
+      input {
+        width: 100%;
+        height: 30px;
+        border: 1px solid #767676;
+        background-color: transparent;
+        padding-left: 10px;
+        font-size: 12px;
+        color: #000000;
+        margin-bottom: 15px;
+        outline: none;
+      }
+
+      .loginBtn {
+        width: 100%;
+        height: 35px;
+        line-height: 32px;
+        text-align: center;
+        font-size: 15px;
+        color: #fff;
+        border-radius: 6px;
+        background: rgb(57, 99, 134);
+        outline: none;
+        border: none;
+        margin-top: 10px;
+      }
+
+      .no {
+        cursor: pointer;
+        margin-top: 30px;
+        text-align: center;
+        font-size: 12px;
+        color: #828282;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="Box">
+      <div class="left">
+        <div class="centerBox">
+          <img src="https://static.llody.top/images/DM_20240323220512_001.png"
+            alt="">
+          <h4>Docker管理面板</h4>
+          <p>This is a Docker Panel</p>
+        </div>
+      </div>
+      <div class="right">
+        <form action="{% url 'user_login' %}" method="post" class="sign-in-form">
+          {% csrf_token %}
+          <h3>欢迎登录</h3>
+          <input type="text" id="username" name="username" placeholder="请输入账户"  required>
+          <input type="password" id="password" name="password" placeholder="请输入密码" required>
+          <input type="submit" class="loginBtn" value="登录"></button>
+          <div class="social-media"><span style="color:red;">{{ msg }}</span></div>
+          <!-- <p class="no">没有账号？立即注册</p> -->
+        </form>
+      </div>
     </div>
-    <div class="panel right-panel">
-     <div class="content">
-      <h3>已经注册过啦？</h3>
-      <p>
-        有账户可以直接登录哟！！！
-      </p>
-      <button class="btn transparent" id="sign-in-btn">登录</button>
-     </div>
-     <img src="/static/login/img/register.svg" class="image" alt="A picture here"/>
-    </div>
-   </div>
-  </div>
-  <script src="/static/login/js/app.js"></script>
- </body>
+  </body>
 </html>
