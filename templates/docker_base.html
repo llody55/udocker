@@ -117,12 +117,13 @@
         }
     </style>
     {% block head_style %}{% endblock %}
+    {% load i18n %}
 </head>
 
 <body class="layui-layout-body">
     <div class="layui-layout layui-layout-admin">
         <div class="layui-header" style="background-color: white;">
-            <a href="#"><div class="layui-logo layui-bg-black">Udocker 控制台</div></a> <!-- 返回Docker管理按钮 -->
+            <a href="#"><div class="layui-logo layui-bg-black">{% translate "Udocker 控制台" %}</div></a> <!-- 返回Docker管理按钮 -->
                 <ul class="layui-nav layui-layout-left">
                     <li class="layui-nav-item" lay-unselect>
                         <a ew-event="flexible" title="侧边伸缩"><i class="layui-icon layui-icon-shrink-right" style="color: black;"></i></a>
@@ -131,7 +132,7 @@
             <ul class="layui-nav layui-layout-right">
                 {% if request.user.username %}
                 <li class="layui-nav-item layui-hide layui-show-md-inline-block " id="message" lay-filter="message">
-                    <a href="javascript:;">消息&nbsp;<i class="layui-icon layui-icon-notice" style="color: black;"></i><span
+                    <a href="javascript:;">{% translate "消息" %}&nbsp;<i class="layui-icon layui-icon-notice" style="color: black;"></i><span
                             class="layui-badge layui-bg-orange">6</span></a>
                 </li>
                 <li class="layui-nav-item layui-hide layui-show-md-inline-block">
@@ -140,14 +141,14 @@
                         {{ request.user.username }}
                     </a>
                     <dl class="layui-nav-child">
-                        <dd><a href="" style="color: black;">基本资料</a></dd>
-                        <dd><a href="" style="color: black;">安全设置</a></dd>
+                        <dd><a href="" style="color: black;">{% translate "基本资料" %}</a></dd>
+                        <dd><a href="" style="color: black;">{% translate "安全设置" %}</a></dd>
                         <hr>
-                        <dd><a href="{% url 'logout' %}" style="color: black;">退出</a></dd>
+                        <dd><a href="{% url 'logout' %}" style="color: black;">{% translate "退出" %}</a></dd>
                     </dl>
                 </li>
                 {% else %}
-                <li class="layui-nav-item"><a href="" style="color: black;">登录</a></li>
+                <li class="layui-nav-item"><a href="" style="color: black;">{% translate "登录" %}</a></li>
                 {% endif %}
             </ul>
         
@@ -159,34 +160,34 @@
                         <a class="" href="#"><i class="layui-icon layui-icon-console">&nbsp;&nbsp;<span>仪表盘</span></i></a>
                     </li> -->
                     <li class="layui-nav-item {% block item-1 %}{% endblock %}">
-                        <a href="{% url 'index' %}"><i class="layui-icon layui-icon-chart-screen">&nbsp;&nbsp;<span>系统信息</span></i></a>
+                        <a href="{% url 'index' %}"><i class="layui-icon layui-icon-chart-screen">&nbsp;&nbsp;<span>{% translate "系统信息" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-2 %}{% endblock %}">
-                        <a href="{% url 'docker_image_info' %}"><i class="layui-icon layui-icon-template-1">&nbsp;&nbsp;<span>镜像管理</span></i></a>
+                        <a href="{% url 'docker_image_info' %}"><i class="layui-icon layui-icon-template-1">&nbsp;&nbsp;<span>{% translate "镜像管理" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-3 %}{% endblock %}">
-                            <a href="{% url 'docker_container'%}"><i class="layui-icon layui-icon-app">&nbsp;&nbsp;<span>容器管理</span></i></a>
+                            <a href="{% url 'docker_container'%}"><i class="layui-icon layui-icon-app">&nbsp;&nbsp;<span>{% translate "容器管理" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-4 %}{% endblock %}">
-                        <a href="{% url 'docker_network_info' %}"><i class="layui-icon layui-icon-website">&nbsp;&nbsp;<span>网络管理</span></i></a>
+                        <a href="{% url 'docker_network_info' %}"><i class="layui-icon layui-icon-website">&nbsp;&nbsp;<span>{% translate "网络管理" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-5 %}{% endblock %}">
-                        <a href="{% url 'docker_volumes_info' %}"><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>存储管理</span></i></a>
+                        <a href="{% url 'docker_volumes_info' %}"><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>{% translate "存储管理" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-6 %}{% endblock %}">
-                        <a href="{% url 'docker_event_info' %}"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>事件中心</span></i></a>
+                        <a href="{% url 'docker_event_info' %}"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>{% translate "事件中心" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-7 %}{% endblock %}">
-                        <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>系统设置</span></i></a>
+                        <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>{% translate "系统设置" %}</span></i></a>
                         <dl class="layui-nav-child">
-                            <dd><a href="{% url 'docker_registries_info' %}" class="{% block item-7-1 %}{% endblock %}">镜像仓库</a></dd>
+                            <dd><a href="{% url 'docker_registries_info' %}" class="{% block item-7-1 %}{% endblock %}">{% translate "镜像仓库" %}</a></dd>
                         </dl>
                     </li>
                     <li class="layui-nav-item {% block item-8 %}{% endblock %}">
-                        <a href="{% url 'password_reset_request' %}"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>用户中心</span></i></a>
+                        <a href="{% url 'password_reset_request' %}"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>{% translate "用户中心" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-9 %}{% endblock %}">
-                        <a href="#"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>关于</span></i></a>
+                        <a href="#"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>{% translate "关于" %}</span></i></a>
                     </li>
                 </ul>
             </div>
@@ -214,9 +215,9 @@
         layui.use(['element', 'layer', 'util'], function () {
 
             var element = layui.element
-                , layer = layui.layer
-                , util = layui.util
-                , $ = layui.$;
+            var layer = layui.layer
+            var util = layui.util
+            var $ = layui.$;
 
             //头部事件
             util.event('lay-header-event', {

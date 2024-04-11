@@ -16,9 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include,re_path
 from apps import views
+from django.utils.translation import gettext_lazy as _
 
 urlpatterns = [
     re_path('^$',views.index,name="index"),
     #path('admin/', admin.site.urls),
     path('apps/',include('apps.urls')),
+    path('i18n/',include('django.conf.urls.i18n')),
 ]

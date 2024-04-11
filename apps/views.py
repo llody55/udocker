@@ -26,6 +26,7 @@ from loguru import logger
 # Create your views here.
 from apps import docker_mod
 from docker.errors import DockerException, TLSParameterError,APIError, ContainerError, ImageNotFound,NotFound
+from django.utils.translation import gettext_lazy as _
 
 @login_required
 def index(request):
@@ -152,7 +153,7 @@ def password_reset_request(request):
         else:
             # 如果当前密码验证失败，返回错误信息
             return JsonResponse({'error': '当前密码不正确，请重试','code':'1'})
-
+            
 @login_required
 def docker_container(request):
     return render(request, 'container/docker_container_list.html')
