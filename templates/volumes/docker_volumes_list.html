@@ -1,6 +1,7 @@
 {% extends 'docker_base.html' %}
 {% block title %}挂载管理{% endblock %}
 {% block item-5 %}layui-nav-itemed{% endblock %}
+{% load i18n %}
 {% block head_style %}
 <style>
     /* 刷新按钮样式 */
@@ -32,8 +33,8 @@
 {% endblock %}
 {% block context %}
 <span class="layui-breadcrumb">
-    <a href="#">首页</a>
-    <a><cite>Docker挂载管理</cite></a>
+    <a href="#">{% translate "首页" %}</a>
+    <a><cite>{% translate "Docker挂载管理" %}</cite></a>
 </span>
 <hr>
 <div class="layui-card">
@@ -43,7 +44,7 @@
             <div class="layui-col-md12">
                 <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
                     style="width: 150px;float: left">
-                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn" id="searchBtn" style="float: left">{% translate "搜索" %}</button>
                 <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
                     <i class="layui-icon layui-icon-refresh"></i>
                 </button>
@@ -54,17 +55,17 @@
                 <!-- 自定义头部工具 -->
                 <script type="text/html" id="demoTable">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">创建</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理卷映射</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "创建" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理卷映射" %}</button>
                     {% endif %}
                 </script>
                 <!--  行工具 -->
                 <script type="text/html" id="barDemo">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">详情</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete" id="delete"><i class="layui-icon layui-icon-delete"></i>删除</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">{% translate "详情" %}</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete" id="delete"><i class="layui-icon layui-icon-delete"></i>{% translate "删除" %}</a>
                     {% else %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">详情</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">{% translate "详情" %}</a>
                     {% endif %}
                 </script>
                 

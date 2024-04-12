@@ -1,6 +1,7 @@
 {% extends 'docker_base.html' %}
 {% block title %}事件管理{% endblock %}
 {% block item-6 %}layui-nav-itemed{% endblock %}
+{% load i18n %}
 {% block head_style %}
 <style>
     /* 刷新按钮样式 */
@@ -32,8 +33,8 @@
 {% endblock %}
 {% block context %}
 <span class="layui-breadcrumb">
-    <a href="#">首页</a>
-    <a><cite>Docker事件列表</cite></a>
+    <a href="#">{% translate "首页" %}</a>
+    <a><cite>{% translate "Docker事件列表" %}</cite></a>
 </span>
 <hr>
 <div class="layui-card">
@@ -55,9 +56,9 @@
                 <!--  行工具 -->
                 <script type="text/html" id="barDemo">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">查看</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">{% translate "查看" %}</a>
                     {% else %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">查看</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">{% translate "查看" %}</a>
                     {% endif %}
                 </script>
                 

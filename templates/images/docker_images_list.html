@@ -1,6 +1,7 @@
 {% extends 'docker_base.html' %}
 {% block title %}镜像管理{% endblock %}
 {% block item-2 %}layui-nav-itemed{% endblock %}
+{% load i18n %}
 {% block head_style %}
 <style>
     /* 刷新按钮样式 */
@@ -32,8 +33,8 @@
 {% endblock %}
 {% block context %}
 <span class="layui-breadcrumb">
-    <a href="#">首页</a>
-    <a><cite>Docker镜像管理</cite></a>
+    <a href="#">{% translate "首页" %}</a>
+    <a><cite>{% translate "Docker镜像管理" %}</cite></a>
 </span>
 <hr>
 <div class="layui-card">
@@ -43,7 +44,7 @@
             <div class="layui-col-md12">
                 <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
                     style="width: 150px;float: left">
-                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn" id="searchBtn" style="float: left">{% translate "搜索" %}</button>
                 <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
                     <i class="layui-icon layui-icon-refresh"></i>
                 </button>
@@ -54,20 +55,20 @@
                 <!-- 自定义头部工具 -->
                 <script type="text/html" id="demoTable">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">拉取镜像</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理【none】镜像</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "拉取镜像" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理【none】镜像" %}</button>
                     {% endif %}
                 </script>
                 <!--  行工具 -->
                 <script type="text/html" id="barDemo">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">查看</a>
-                        <a class="layui-btn layui-btn-xs" lay-event="auth" id="push">推送</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="auth" id="export">导出</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="delete" id="delete"><i class="layui-icon layui-icon-delete"></i>删除</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth" id="auth">{% translate "查看" %}</a>
+                        <a class="layui-btn layui-btn-xs" lay-event="auth" id="push">{% translate "推送" %}</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="auth" id="export">{% translate "导出" %}</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="delete" id="delete"><i class="layui-icon layui-icon-delete"></i>{% translate "删除" %}</a>
                         <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="forcedelete" id="forcedelete"><i class="layui-icon layui-icon-delete"></i>强制删除</a>
                     {% else %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">查看</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">{% translate "查看" %}</a>
                     {% endif %}
                 </script>
                 
@@ -107,7 +108,7 @@
                 , { field: 'image_in_use', title: '占用情况', sort: true ,templet: image_in_useFormat}
                 , { field: 'image_size', title: '镜像大小', sort: true }
                 , { field: 'image_create_time', title: '创建时间', sort: true }
-                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 340, align: "center" }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 370, align: "center" }
             ]],
             id: 'TT',
         });

@@ -22,5 +22,5 @@ urlpatterns = [
     re_path('^$',views.index,name="index"),
     #path('admin/', admin.site.urls),
     path('apps/',include('apps.urls')),
-    path('i18n/',include('django.conf.urls.i18n')),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]

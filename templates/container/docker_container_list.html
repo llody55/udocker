@@ -1,6 +1,7 @@
 {% extends 'docker_base.html' %}
 {% block title %}容器管理{% endblock %}
 {% block item-3 %}layui-nav-itemed{% endblock %}
+{% load i18n %}
 {% block head_style %}
 <style>
     /* 刷新按钮样式 */
@@ -32,8 +33,8 @@
 {% endblock %}
 {% block context %}
 <span class="layui-breadcrumb">
-    <a href="#">首页</a>
-    <a><cite>Docker容器管理</cite></a>
+    <a href="#">{% translate "首页" %}</a>
+    <a><cite>{% translate "Docker容器管理" %}</cite></a>
 </span>
 <hr>
 <div class="layui-card">
@@ -43,7 +44,7 @@
             <div class="layui-col-md12">
                 <input type="text" name="name" lay-verify="title" placeholder="请输入名称" class="layui-input"
                     style="width: 150px;float: left">
-                <button class="layui-btn" id="searchBtn" style="float: left">搜索</button>
+                <button class="layui-btn" id="searchBtn" style="float: left">{% translate "搜索" %}</button>
                 <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
                     <i class="layui-icon layui-icon-refresh"></i>
                 </button>
@@ -54,23 +55,36 @@
                 <!-- 自定义头部工具 -->
                 <script type="text/html" id="demoTable">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">创建</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">清理容器</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "创建" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理容器" %}</button>
                     {% endif %}
                 </script>
-
+                <script type="text/javascript">
+                    var translations = {
+                        containerId: "{% translate '容器ID' %}",
+                        containerName: "{% translate '容器名称' %}",
+                        containerImage: "{% translate '容器镜像' %}",
+                        healthCheck: "{% translate '健康检查' %}",
+                        runningStatus: "{% translate '运行状态' %}",
+                        restartCount: "{% translate '重启次数' %}",
+                        restartPolicy: "{% translate '重启策略' %}",
+                        portMapping: "{% translate '端口映射' %}",
+                        createTime: "{% translate '创建时间' %}",
+                        actions: "{% translate '操作' %}",
+                    };
+                </script>
 
                 <!--  行工具 -->
                 <script type="text/html" id="barDemo">
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>详情</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>日志</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>{% translate "详情" %}</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>{% translate "日志" %}</a>
                         <!-- target="_blank" 表示跳转新窗口打开，默认是 _self 当前窗口打开-->
-                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-black" lay-event="terminal" id="terminal"><i class="layui-icon layui-icon-code-circle" target="_blank"></i>终端</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-black" lay-event="terminal" id="terminal"><i class="layui-icon layui-icon-code-circle" target="_blank"></i>{% translate "终端" %}</a>
                         <a class="layui-btn layui-btn-xs" lay-event="more">更多<i class="layui-icon layui-icon-down"></i></a>
                     {% else %}
-                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>详情</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>日志</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>{% translate "详情" %}</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>{% translate "日志" %}</a>
                     {% endif %}
                 </script>
 
@@ -106,24 +120,24 @@
             }]
             , cols: [[ //表头
                 { type: 'checkbox', fixed: 'left' }   //全选按钮
-                , { field: 'id', title: '容器ID', sort: true }
-                , { field: 'name', title: '容器名称<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
-                , { field: 'image', title: '容器镜像', sort: true }
+                , { field: 'id', title: translations.containerId, sort: true }
+                , { field: 'name', title: translations.containerName +'<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
+                , { field: 'image', title: translations.containerImage, sort: true }
                 //, { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
-                , { field: 'health_status', title: '健康检查<i class="layui-icon layui-icon-survey layui-font-14" title="只标记容器健康状态" style="margin-left: 5px;"></i>', width: 110, templet: health_statusFormat }
-                , { field: 'status', title: '运行状态', width: 100, templet: statusFormat }
-                , { field: 'restart_count', title: '重启次数', width: 100, templet: restartFormat}
+                , { field: 'health_status', title: translations.healthCheck +'<i class="layui-icon layui-icon-survey layui-font-14" title="只标记容器健康状态" style="margin-left: 5px;"></i>', width: 110, templet: health_statusFormat }
+                , { field: 'status', title: translations.runningStatus, width: 100, templet: statusFormat }
+                , { field: 'restart_count', title: translations.restartCount, width: 100, templet: restartFormat}
                 // , { field: 'restart_switch', title: '重启策略', width: 100 }
                 , {
-                    field: 'restart_switch', title: '重启策略', templet: function (d) {
+                    field: 'restart_switch', title: translations.restartPolicy, templet: function (d) {
                         // 根据容器的重启策略设置开关的初始状态
                         var checked = d.restart_switch ? 'checked' : '';
                         return '<input type="checkbox" name="restart" lay-skin="switch" lay-filter="restartFilter" lay-text="ON|OFF" ' + checked + ' data-id="' + d.id + '">';
                     }, width: 110
                 }
-                , { field: 'ports_data', title: '端口映射', width: 150, templet: portsFormat }
-                , { field: 'create_time', title: '创建时间', sort: true }
-                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 300, align: "center" }
+                , { field: 'ports_data', title: translations.portMapping, width: 150, templet: portsFormat }
+                , { field: 'create_time', title: translations.createTime, sort: true }
+                , { fixed: 'right', title: translations.actions, toolbar: '#barDemo', width: 320, align: "center" }
             ]],
             id: 'TT',
             done: function(res, curr, count) {
@@ -144,13 +158,13 @@
             result = "";
             if (d.health_status == 'healthy') {
                 //给返回值加个样式
-                result = '<span class="layui-badge layui-bg-green">健康</span>'
+                result = '<span class="layui-badge layui-bg-green">healthy</span>'
                 return result
             }else if (d.health_status == 'unhealthy'){
-                result = '<span class="layui-badge layui-bg-red">探测失败</span>'
+                result = '<span class="layui-badge layui-bg-red">unhealthy</span>'
                 return result
             }else if (d.health_status == 'starting'){
-                result = '<span class="layui-badge layui-bg-orange">启动中</span>'
+                result = '<span class="layui-badge layui-bg-orange">starting</span>'
                 return result
             } else {
                 result = '-'
@@ -162,10 +176,10 @@
             result = "";
             if (d.status == "running") {
                 //给返回值加个样式
-                result = '<span class="layui-badge layui-bg-green">运行中</span>'
+                result = '<span class="layui-badge layui-bg-green">Running</span>'
                 return result
             } else {
-                result = '<span class="layui-badge layui-bg-red status-disabled">已停止</span>'
+                result = '<span class="layui-badge layui-bg-red status-disabled">Stopped</span>'
                 return result
             }
         }
@@ -353,23 +367,23 @@
                     , data: [{
                         title: '启动'
                         , id: 'start'
-                        , templet: '<span style="color: green;">启动</span>'
+                        , templet: '<span style="color: green;">{% translate "启动" %}</span>'
                     }, {
                         title: '停止'
                         , id: 'stop'
-                        , templet: '<span style="color: red;">停止</span>'
+                        , templet: '<span style="color: red;">{% translate "停止" %}</span>'
                     }, {
                         title: '重启'
                         , id: 'restart'
-                        , templet: '<span style="color: lime;">重启</span>'
+                        , templet: '<span style="color: lime;">{% translate "重启" %}</span>'
                     }, {
                         title: '编辑'
                         , id: 'edit'
-                        , templet: '<span style="color: blue;">编辑</span>'
+                        , templet: '<span style="color: blue;">{% translate "编辑" %}</span>'
                     }, {
                         title: '删除'
                         , id: 'del'
-                        , templet: '<span style="color: fuchsia;">删除</span>'
+                        , templet: '<span style="color: fuchsia;">{% translate "删除" %}</span>'
                     }]
                     , click: function (menudata) {
                         if (menudata.id === 'del') {

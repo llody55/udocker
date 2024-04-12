@@ -130,6 +130,18 @@
                     </li>
                 </ul>
             <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item layui-hide layui-show-md-inline-block ">
+                    <form action="{% url 'set_language' %}" method="post">
+                        <input name="next" type="hidden" value="{{ redirect_to }}" />
+                        {% csrf_token %}
+                        <select name="language" onchange="this.form.submit();">
+                            <option value="">Language</option>
+                            <option value="en">English</option>
+                            <option value="zh-hans">简体中文</option>
+                            
+                        </select>
+                    </form>
+                </li>
                 {% if request.user.username %}
                 <li class="layui-nav-item layui-hide layui-show-md-inline-block " id="message" lay-filter="message">
                     <a href="javascript:;">{% translate "消息" %}&nbsp;<i class="layui-icon layui-icon-notice" style="color: black;"></i><span
