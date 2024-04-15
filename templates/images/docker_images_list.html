@@ -231,12 +231,12 @@
                                     // 关闭 loading 效果
                                     layer.close(loadingIndex);
                                     // 显示拉取镜像开始的消息
-                                    layer.msg(result.msg, {time: 3000}, { icon: 6 });
+                                    layer.msg(result.msg, {time: 3000}, { icon: 6 })
                                 } else {
                                     // 关闭 loading 效果
                                     layer.close(loadingIndex);
                                     // 显示错误消息
-                                    layer.msg(result.msg, {time: 2000});
+                                    layer.msg(result.msg, {time: 2000}, { icon: 5 })
                                 }
                             },
                             error: function () {

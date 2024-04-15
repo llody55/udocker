@@ -23,6 +23,10 @@
         body {
             margin: 10px;
         }
+        .layui-body {
+            padding-bottom: 10px; /* 底部导航栏的高度作为内边距 ,避免分页栏被底部遮挡。*/
+            overflow-y: auto; /* 允许在需要时滚动 */
+        }
         .demo-carousel {
             height: 200px;
             line-height: 200px;
@@ -114,6 +118,11 @@
         /* 当侧边栏收缩时，伸缩元素的左边距调整 */
         .layui-side-shrink .layui-nav .layui-layout-left {
             left: 40px; /* 调整为侧边栏收缩后的宽度，这里60px应与侧边栏收缩后的宽度一致 */
+        }
+        /* 避免当左侧导航栏有多个时，的样式覆盖*/
+        li.layui-nav-item {
+            position: relative; /* z-index只对定位元素有效 */
+            z-index: 1000; /* 一个足够大的值，确保在上层 */
         }
     </style>
     {% block head_style %}{% endblock %}
@@ -216,7 +225,7 @@
 
         <div class="layui-footer" style="text-align: center">
             <!-- 底部固定区域 -->
-            <a href="https://github.com/llody55/udocker"> Udocker</a>&nbsp;控制台 ©2024 llody Version:1.0-base &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/DM_20240323222423_001_00001_1.ico">
+            <a href="https://github.com/llody55/udocker"> {% translate "Udocker 控制台" %}</a> ©2024 llody Version:1.0-base &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/DM_20240323222423_001_00001_1.ico">
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>

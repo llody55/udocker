@@ -951,7 +951,7 @@ def docker_images_api(request):
                 images = client.images.list(all=True)
                 # 遍历镜像列表
                 for image in images:
-                    #print("镜像tag状态:",image.attrs['RepoTags'])
+                    print("镜像tag状态:",image.attrs['RepoTags'])
                     if image.attrs['RepoTags'] is None or not image.attrs['RepoTags']:
                         client.images.remove(image.id, force=True)
                         print(f'已删除镜像: {image.id}')
@@ -959,8 +959,11 @@ def docker_images_api(request):
             msg = "清理完成"             
         except DockerException as e:
             logger.error(e)
-            code = 0
-            msg = f"报错了:{e}"
+            code = 1
+            if e.status_code == 409 and "image has dependent child images" in str(e):
+                msg = "删除失败：存在多个依赖的子镜像。"
+            else:
+                msg = "删除报错：%s" % e
         result = {'code': code, 'msg': msg}
         return JsonResponse(result)
             
