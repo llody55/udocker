@@ -214,7 +214,9 @@ def docker_container_api(request):
                     else:
                         health_status = None
                     time_str = container.attrs['Created']
+                    time_offset = datetime.timedelta(hours=8)
                     time_obj = parser.isoparse(time_str)
+                    time_obj += time_offset
                     create_time = time_obj.strftime('%Y-%m-%d %H:%M:%S')
                     dat = {"id":id,"name":name,"image":image,"isrunning":isrunning,"restart_switch":restart_switch,"restart_count":restart_count,"status":status,"create_time":create_time,"ports_data":ports_data,"health_status":health_status}
                     # 根据查询关键字返回数据
