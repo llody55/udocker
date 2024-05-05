@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>登录3</title>
+    <link href="/static/layui/css/layui.css" rel="stylesheet" />
     <style>
       * {
         margin: 0;
@@ -113,6 +114,24 @@
         font-size: 12px;
         color: #828282;
       }
+      .layui-input-wrap {
+        position: relative;
+      }
+
+      .layui-input-prefix {
+        position: absolute;
+        left: 10px; /* 根据图标大小调整 */
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ccc; /* 图标颜色 */
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%; /* 宽度根据需要调整 */
+        padding-left: 40px; /* 根据图标大小调整 */
+        /* 其他样式 */
+      }
     </style>
   </head>
   <body>
@@ -129,13 +148,32 @@
         <form action="{% url 'user_login' %}" method="post" class="sign-in-form">
           {% csrf_token %}
           <h3>欢迎登录</h3>
-          <input type="text" id="username" name="username" placeholder="请输入账户"  required>
-          <input type="password" id="password" name="password" placeholder="请输入密码" required>
-          <input type="submit" class="loginBtn" value="登录"></button>
+          <div class="demo-login-container">
+            <div class="layui-form-item">
+              <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                  <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <input type="text" id="username" name="username" placeholder="请输入账户"  required>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                  <i class="layui-icon layui-icon-password"></i>
+                </div>
+                <input type="password" id="password" name="password" placeholder="请输入密码" required>
+              </div>
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <button type="submit" class="loginBtn">登录</button>
+          </div>
           <div class="social-media"><span style="color:red;">{{ msg }}</span></div>
           <!-- <p class="no">没有账号？立即注册</p> -->
         </form>
       </div>
     </div>
+    <script src="/static/layui/layui.js"></script>
   </body>
 </html>
