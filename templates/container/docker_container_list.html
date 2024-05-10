@@ -57,6 +57,7 @@
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
                     <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "创建" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理容器" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="Batch_restart">{% translate "批量重启" %}</button>
                     {% endif %}
                 </script>
                 <script type="text/javascript">
@@ -510,6 +511,9 @@
         //监听自定义头工具栏事件
         table.on('toolbar(test)', function (obj) {
             var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var checkStatus = table.checkStatus(obj.config.id)
+            var data = checkStatus.data; 
+            console.log(data)
             switch (obj.event) {
                 case 'add':
                     layer.open({
@@ -558,6 +562,40 @@
                         })
                         layer.close(index);
                     });
+                    break
+                case 'Batch_restart':
+                    var checkStatus = table.checkStatus(obj.config.id)
+                    var data = checkStatus.data; 
+                    if(data.length == 0 ) {
+                        layer.msg("请至少选择一行")
+                    }else {
+                        // 显示 loading 效果
+                        var loadingIndex = layer.load(3);
+                        layer.msg('开始重启，请稍候...', {time: 2000});
+                        $.ajax({
+                            type: "BATCHRESTART",
+                            url: '{% url "docker_container_batchrestart_api" %}',
+                            data: JSON.stringify(data),
+                            headers: { 'X-CSRFToken': csrf_token },
+                            success: function (result) {
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
+                                if (result.code == '0') {
+                                    layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                        // 重新加载页面
+                                        window.location.reload()
+                                    });
+                                } else {
+                                    layer.msg(result.msg, { icon: 5 })
+                                }
+                            },
+                            error: function () {
+                                // 关闭 loading 效果
+                                layer.close(loadingIndex);
+                                layer.msg("服务器接口异常！", { icon: 5 })
+                            }
+                        });
+                    }
                     break
             }
         })

@@ -1,5 +1,9 @@
 # 第一阶段
-FROM python:3.9.10-slim as builder
+FROM --platform=$TARGETPLATFORM python:3.9.10-slim as builder
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETARCH
+
 ENV PIP_CACHE_DIR=/app/.cache \
     LANG=en_GB.UTF-8 \
     DOCKER_HOST=unix:///var/run/docker.sock
@@ -15,7 +19,10 @@ RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com
     python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
 
 # 第二阶段
-FROM python:3.9.10-slim
+FROM --platform=$TARGETPLATFORM python:3.9.10-slim
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETARCH
 
 MAINTAINER llody55
 

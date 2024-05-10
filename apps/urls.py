@@ -17,6 +17,7 @@ urlpatterns = [
     re_path("docker_container_delete_api/",views.docker_container_delete_api,name="docker_container_delete_api"),  # 远程docker容器管理删除容器
     re_path("docker_container_rename_api/",views.docker_container_rename_api,name="docker_container_rename_api"),  # 远程docker容器名称重命名
     re_path("docker_container_restart_policy_api/",views.docker_container_restart_policy_api,name="docker_container_restart_policy_api"),  # 远程docker容器重启策略更新接口
+    re_path("docker_container_batchrestart_api/",views.docker_container_batchrestart_api,name="docker_container_batchrestart_api"),
     re_path("docker_logs/",views.docker_logs,name="docker_logs"),  # 远程docker容器日志
     re_path("docker_terminal/",views.docker_terminal,name="docker_terminal"),  # 远程docker容器终端
 

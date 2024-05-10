@@ -731,6 +731,31 @@ def docker_container_restart_policy_api(request):
     result = {'code': code, 'msg': msg}
     return JsonResponse(result)
 
+# 批量重启方法
+@login_required
+def docker_container_batchrestart_api(request):
+    if request.method == "BATCHRESTART":
+        # 接收前端POST传递的参数
+        request_data = json.loads(request.body.decode('utf-8'))
+        try:
+            success, client = docker_mod.connect_to_docker()
+            if success:
+                containers = client.containers.list(all=True)
+                for container_id in request_data:
+                    for container in containers:
+                        if container_id['id'] == container.short_id:
+                            con_restart = client.containers.get(container_id['id'])
+                            con_restart.restart() 
+                code = 0
+                msg = "重启完成"
+        except Exception as e:
+            logger.error(e)
+            code =1
+            msg = f"容器重启失败，错误：{str(e)}"
+        result = {'code': code, 'msg': msg}
+        return JsonResponse(result)
+
+
 @xframe_options_exempt
 @login_required
 def docker_logs(request):
