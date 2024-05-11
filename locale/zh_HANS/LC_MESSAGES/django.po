@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-12 17:31+0800\n"
+"POT-Creation-Date: 2024-05-11 09:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,48 +49,52 @@ msgstr ""
 msgid "清理容器"
 msgstr ""
 
-#: templates/container/docker_container_list.html:64
-msgid "容器ID"
+#: templates/container/docker_container_list.html:60
+msgid "批量重启"
 msgstr ""
 
 #: templates/container/docker_container_list.html:65
-msgid "容器名称"
+msgid "容器ID"
 msgstr ""
 
 #: templates/container/docker_container_list.html:66
-msgid "容器镜像"
+msgid "容器名称"
 msgstr ""
 
 #: templates/container/docker_container_list.html:67
-msgid "健康检查"
+msgid "容器镜像"
 msgstr ""
 
 #: templates/container/docker_container_list.html:68
-msgid "运行状态"
+msgid "健康检查"
 msgstr ""
 
 #: templates/container/docker_container_list.html:69
-msgid "重启次数"
+msgid "运行状态"
 msgstr ""
 
 #: templates/container/docker_container_list.html:70
-msgid "重启策略"
+msgid "重启次数"
 msgstr ""
 
 #: templates/container/docker_container_list.html:71
-msgid "端口映射"
+msgid "重启策略"
 msgstr ""
 
 #: templates/container/docker_container_list.html:72
-msgid "创建时间"
+msgid "端口映射"
 msgstr ""
 
 #: templates/container/docker_container_list.html:73
+msgid "创建时间"
+msgstr ""
+
+#: templates/container/docker_container_list.html:74
 msgid "操作"
 msgstr ""
 
-#: templates/container/docker_container_list.html:80
-#: templates/container/docker_container_list.html:86
+#: templates/container/docker_container_list.html:81
+#: templates/container/docker_container_list.html:87
 #: templates/network/docker_network_list.html:65
 #: templates/network/docker_network_list.html:68
 #: templates/registries/docker_registries_list.html:65
@@ -100,32 +104,32 @@ msgstr ""
 msgid "详情"
 msgstr ""
 
-#: templates/container/docker_container_list.html:81
-#: templates/container/docker_container_list.html:87
+#: templates/container/docker_container_list.html:82
+#: templates/container/docker_container_list.html:88
 msgid "日志"
 msgstr ""
 
-#: templates/container/docker_container_list.html:83
+#: templates/container/docker_container_list.html:84
 msgid "终端"
 msgstr ""
 
-#: templates/container/docker_container_list.html:370
+#: templates/container/docker_container_list.html:371
 msgid "启动"
 msgstr ""
 
-#: templates/container/docker_container_list.html:374
+#: templates/container/docker_container_list.html:375
 msgid "停止"
 msgstr ""
 
-#: templates/container/docker_container_list.html:378
+#: templates/container/docker_container_list.html:379
 msgid "重启"
 msgstr ""
 
-#: templates/container/docker_container_list.html:382
+#: templates/container/docker_container_list.html:383
 msgid "编辑"
 msgstr ""
 
-#: templates/container/docker_container_list.html:386
+#: templates/container/docker_container_list.html:387
 #: templates/images/docker_images_list.html:68
 #: templates/network/docker_network_list.html:66
 #: templates/registries/docker_registries_list.html:66
@@ -133,67 +137,67 @@ msgstr ""
 msgid "删除"
 msgstr ""
 
-#: templates/docker_base.html:126
+#: templates/docker_base.html:135 templates/docker_base.html:228
 msgid "Udocker 控制台"
 msgstr ""
 
-#: templates/docker_base.html:147
+#: templates/docker_base.html:156
 msgid "消息"
 msgstr ""
 
-#: templates/docker_base.html:156
+#: templates/docker_base.html:165
 msgid "基本资料"
 msgstr ""
 
-#: templates/docker_base.html:157
+#: templates/docker_base.html:166
 msgid "安全设置"
 msgstr ""
 
-#: templates/docker_base.html:159
+#: templates/docker_base.html:168
 msgid "退出"
 msgstr ""
 
-#: templates/docker_base.html:163
+#: templates/docker_base.html:172
 msgid "登录"
 msgstr ""
 
-#: templates/docker_base.html:175 templates/docker_info.html:8
+#: templates/docker_base.html:184 templates/docker_info.html:8
 msgid "系统信息"
 msgstr ""
 
-#: templates/docker_base.html:178
+#: templates/docker_base.html:187
 msgid "镜像管理"
 msgstr ""
 
-#: templates/docker_base.html:181
+#: templates/docker_base.html:190
 msgid "容器管理"
 msgstr ""
 
-#: templates/docker_base.html:184
+#: templates/docker_base.html:193
 msgid "网络管理"
 msgstr ""
 
-#: templates/docker_base.html:187
+#: templates/docker_base.html:196
 msgid "存储管理"
 msgstr ""
 
-#: templates/docker_base.html:190
+#: templates/docker_base.html:199
 msgid "事件中心"
 msgstr ""
 
-#: templates/docker_base.html:193
+#: templates/docker_base.html:202
 msgid "系统设置"
 msgstr ""
 
-#: templates/docker_base.html:195
+#: templates/docker_base.html:204
 msgid "镜像仓库"
 msgstr ""
 
-#: templates/docker_base.html:199
+#: templates/docker_base.html:208
 msgid "用户中心"
 msgstr ""
 
-#: templates/docker_base.html:202
+#: templates/docker_base.html:211
 msgid "关于"
 msgstr ""
 

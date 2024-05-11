@@ -8,6 +8,7 @@ import hashlib
 import humanize
 import ipaddress
 import traceback
+import concurrent.futures
 from dateutil import parser
 from django.http import HttpResponse,JsonResponse, QueryDict,FileResponse
 from django.shortcuts import render, redirect
@@ -737,20 +738,36 @@ def docker_container_batchrestart_api(request):
     if request.method == "BATCHRESTART":
         # 接收前端POST传递的参数
         request_data = json.loads(request.body.decode('utf-8'))
+        results = {}
         try:
             success, client = docker_mod.connect_to_docker()
             if success:
                 containers = client.containers.list(all=True)
-                for container_id in request_data:
-                    for container in containers:
-                        if container_id['id'] == container.short_id:
-                            con_restart = client.containers.get(container_id['id'])
-                            con_restart.restart() 
+                # 创建线程池
+                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                    for container_id in request_data:
+                        container_id = container_id['id']
+                        for container in containers:
+                            if container_id == container.short_id:
+                                container_name = container.name
+                                con_restart = client.containers.get(container_id)
+                                future = executor.submit(con_restart.restart, timeout=30)
+                                results[container_name] = future
+                    # 等待所有任务完成，并收集结果
+                    for container_name, future in results.items():
+                        try:
+                            future.result()  # 如果重启成功，这里不会抛出异常
+                            logger.info(f"容器 【 {container_name} 】 重启成功")
+                        except Exception as e:
+                            logger.error(f"容器 【 {container_name} 】 重启失败：{str(e)}")
                 code = 0
                 msg = "重启完成"
+            else:
+                code = 1
+                msg = "连接Docker失败"
         except Exception as e:
-            logger.error(e)
-            code =1
+            logger.error(f"批量重启容器时发生错误：{str(e)}")
+            code = 1
             msg = f"容器重启失败，错误：{str(e)}"
         result = {'code': code, 'msg': msg}
         return JsonResponse(result)
