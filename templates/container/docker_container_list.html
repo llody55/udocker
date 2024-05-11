@@ -57,7 +57,7 @@
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
                     <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "创建" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理容器" %}</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="Batch_restart">{% translate "批量重启" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="Batch_restart">{% translate "批量重启" %}</button>
                     {% endif %}
                 </script>
                 <script type="text/javascript">
@@ -82,7 +82,7 @@
                         <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>{% translate "日志" %}</a>
                         <!-- target="_blank" 表示跳转新窗口打开，默认是 _self 当前窗口打开-->
                         <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-black" lay-event="terminal" id="terminal"><i class="layui-icon layui-icon-code-circle" target="_blank"></i>{% translate "终端" %}</a>
-                        <a class="layui-btn layui-btn-xs" lay-event="more">更多<i class="layui-icon layui-icon-down"></i></a>
+                        <a class="layui-btn layui-btn-xs" lay-event="more">{% translate "更多" %}<i class="layui-icon layui-icon-down"></i></a>
                     {% else %}
                         <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-events="test-offset-r" lay-event="auths"><i class="layui-icon layui-icon-tips-fill"></i>{% translate "详情" %}</a>
                         <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="logs" id="logs"><i class="layui-icon layui-icon-list"></i>{% translate "日志" %}</a>
@@ -361,7 +361,7 @@
                 // window.location.href = '{% url "docker_terminal" %}?name=' + data.name + '&container_id='+ data.id + '&containers=' + containers
             } else if (obj.event === 'more') {
                 //下拉菜单
-                dropdown.render({
+                var cni = dropdown.render({
                     elem: '#more'
                     , elem: this //触发事件的 DOM 对象
                     , show: true //外部事件触发即显示
@@ -409,12 +409,18 @@
                                     layer.close(index);
                                 });
                         } else if (menudata.id === 'edit') {
+                            var id = obj.config.id;
+                            var checkStatus = table.checkStatus(id);
+                            var othis = lay(this);
+                            //layer.alert(layui.util.escape(data['id']));
+                            layer.msg(cni.config.id)
 
-                            layer.msg('编辑操作，当前行 ID:' + data.id);
+                            //layer.msg('编辑操作，当前行 ID:' + id);
                         } else if (menudata.id === 'start') {
-                            // 显示 loading 效果
-                            var loadingIndex = layer.load(2);
+                            
                             layer.confirm('真的要启动<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                // 显示 loading 效果
+                                var loadingIndex = layer.load(2);
                                 $.ajax({
                                     type: "POST",
                                     url: '{% url "docker_container_start_api" %}?name=' + data.name,
@@ -441,10 +447,11 @@
                                 layer.close(index);
                             });
                         } else if (menudata.id === 'stop') {
-                            // 显示 loading 效果
-                            var loadingIndex = layer.load(2);
+                            
                             // 弹框询问
                             layer.confirm('真的要停止<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                // 显示 loading 效果
+                                var loadingIndex = layer.load(2);
                                 $.ajax({
                                     type: "POST",
                                     url: '{% url "docker_container_stop_api" %}?name=' + data.name,
@@ -472,9 +479,10 @@
                                 layer.close(index);
                             });
                         } else if (menudata.id === 'restart') {
-                            // 显示 loading 效果
-                            var loadingIndex = layer.load(2);
+                            
                             layer.confirm('真的要重启<span style="color: red">' + data.name + '</span>这个docker吗？', function (index) {
+                                // 显示 loading 效果
+                                var loadingIndex = layer.load(2);
                                 $.ajax({
                                     type: "POST",
                                     url: '{% url "docker_container_restart_api" %}?name=' + data.name,
@@ -500,6 +508,7 @@
                                 })
                                 layer.close(index);
                             });
+                            
                         }
                     }
                     , align: 'right' //右对齐弹出（v2.6.8 新增）
@@ -584,6 +593,7 @@
                                     layer.msg(result.msg, { icon: 6, time: 500 }, function () {
                                         // 重新加载页面
                                         window.location.reload()
+                                        
                                     });
                                 } else {
                                     layer.msg(result.msg, { icon: 5 })
