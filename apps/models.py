@@ -114,3 +114,44 @@ class Registries(models.Model):
     class Meta:
         verbose_name = '镜像仓库'
         verbose_name_plural = '镜像仓库'
+
+# 主机终端表
+class HostMonitoring(models.Model):
+    host_name = models.CharField(max_length=30,verbose_name="资产名称",null=True)
+    host_address = models.CharField(max_length=30,verbose_name="主机IP地址",null=True)
+    host_port = models.CharField(max_length=6,verbose_name="端口",null=True)
+    host_username = models.CharField(max_length=30,verbose_name="用户名",null=True)
+    host_password = models.CharField(max_length=30,verbose_name="密码",null=True)
+    host_status = models.CharField(max_length=30,verbose_name="主机存活状态",null=True)
+    host_createdat_time = models.DateTimeField(auto_now=True, verbose_name="数据上报时间", null=True) 
+
+    def set_password(self, raw_password):
+        key = Fernet.generate_key()  # 生成密钥
+        self.encryption_key = key.decode()  # 保存密钥为字符串
+        cipher_suite = Fernet(key)
+        self.host_password = cipher_suite.encrypt(raw_password.encode()).decode()  # 保存加密后的密码为字符串
+
+    def get_password(self):
+        cipher_suite = Fernet(self.encryption_key.encode())
+        return cipher_suite.decrypt(self.host_password.encode()).decode()  # 解密密码
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # 新增默认加密
+            self.set_password(self.host_password)
+        else:  # 对旧数据更新加密信息
+            pass
+        super(Registries, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.host_name
+
+    class Meta:
+        verbose_name = '主机列表'
+        verbose_name_plural = '主机列表'
+
+"""
+#迁移数据库表
+python3 manage.py makemigrations apps
+python3 manage.py migrate apps
+
+"""

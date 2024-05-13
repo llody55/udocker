@@ -205,7 +205,12 @@
                         </dl>
                     </li>
                     <li class="layui-nav-item {% block item-8 %}{% endblock %}">
-                        <a href="{% url 'password_reset_request' %}"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>{% translate "用户中心" %}</span></i></a>
+                        <a href="javascript:;"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>{% translate "用户中心" %}</span></i></a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="{% url 'password_reset_request' %}" class="{% block item-8-1 %}{% endblock %}">{% translate "账户" %}</a></dd>
+                            <dd><a href="{% url 'webssh_info' %}" class="{% block item-8-2 %}{% endblock %}">{% translate "终端" %}</a></dd>
+                        </dl>
+                        
                     </li>
                     <li class="layui-nav-item {% block item-9 %}{% endblock %}">
                         <a href="#"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>{% translate "关于" %}</span></i></a>

@@ -1,0 +1,113 @@
+{% extends 'docker_base.html' %}
+{% block title %}主机终端{% endblock %}
+{% block item-8 %}layui-nav-itemed{% endblock %}
+{% block item-8-2 %}layui-this{% endblock %}
+{% load i18n %}
+{% block head_style %}
+<style>
+    .container {
+        display: flex;
+        height: calc(100vh - 50px - 120px);  /* 调整高度以适应 */
+        overflow: hidden; 
+    }
+    
+    .left-block{
+        display: flex;
+        flex-direction: column; /* 让内部元素垂直排列 */
+        padding: 10px;
+        width: 80%;
+        height: auto;
+        border: 1px solid #333;
+        border-radius: 5px;
+        overflow: hidden; /* 防止内容溢出导致滚动条出现 */
+    }
+    .right-block {
+        display: flex;
+        flex-direction: column; /* 让内部元素垂直排列 */
+        padding: 10px;
+        width: 20%;
+        height: auto;
+        border: 1px solid #333;
+        border-radius: 5px;
+        overflow: hidden; /* 防止内容溢出导致滚动条出现 */
+    }
+    
+    .tab-header {
+        border: 1px solid #444;
+        border-bottom: none;
+        border-radius: 5px 5px 0 0;
+    }
+    
+    .layui-tab-content {
+        display: flex; /* 启用Flexbox */
+        border: 1px solid #444;
+        height: calc(100vh - 265px);
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        background-color: black; /* 内容区域背景色为黑色 */
+    }
+    
+    .layui-tab-title {
+        color: #fff;
+    }
+    
+</style>
+{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">{% translate "首页" %}</a>
+    <a href="#">{% translate "用户中心" %}</a>
+    <a><cite>{% translate "主机终端" %}</cite></a>
+</span>
+<hr>
+<div class="container">
+    <div class="layui-panel left-block">
+        <div class="tab-header">
+            <!-- 选项卡的标签页模块 -->
+            <div class="layui-tab" lay-filter="test-handle" lay-allowclose="true">
+                <ul class="layui-tab-title"></ul>
+                <!-- 选项卡的内容区域 -->
+                <div class="layui-tab-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="layui-panel right-block">
+        <!-- 新增选项卡等功能模块 -->
+        <div class="layui-btn-container">
+            <button class="layui-btn" lay-on="tabAdd">新增 tab 项</button>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+{% block custom_js %}
+<script>
+    layui.use(function () {
+        var form = layui.form;
+        var table = layui.table;
+        var element = layui.element;
+        //var $ = layui.jquery;
+        var layer = layui.layer;
+        var util = layui.util;
+        var $ = layui.$;
+        var dropdown = layui.dropdown //下拉菜单
+
+         // 普通事件
+        util.on('lay-on', {
+            tabAdd: function(){
+                // 新增一个 tab 项
+                var label = (Math.random()*1000|0); // 标记 - 用于演示
+                element.tabAdd('test-handle', {
+                    title: '新选项'+ label,
+                    content: '内容-'+ label,
+                    id: new Date().getTime(), // 实际使用一般是规定好的id，这里以毫秒数模拟
+                    change: true // 是否添加完毕后即自动切换
+                })
+                element.render('test-handle'); 
+            },
+        });
+    })
+</script>
+{% endblock %}

@@ -1,9 +1,11 @@
 import re
+import stat
 import json
 import uuid
 import time
 import datetime
 import docker
+import paramiko
 import hashlib
 import humanize
 import ipaddress
@@ -15,7 +17,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login,logout 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from .models import CustomUser,Role,Registries
+from .models import CustomUser,Role,Registries,HostMonitoring
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -1604,3 +1606,8 @@ def docker_registries_api(request):
 def docker_registries_create(request):
     return render(request, 'registries/docker_registries_create.html')
 
+
+# 主机列表方法
+@login_required
+def webssh_info(request):
+    return render(request, 'webssh/webssh.html')
