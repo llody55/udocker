@@ -41,10 +41,21 @@
     .layui-tab-content {
         display: flex; /* 启用Flexbox */
         border: 1px solid #444;
-        height: calc(100vh - 265px);
-        border-top: none;
-        border-radius: 0 0 5px 5px;
-        background-color: black; /* 内容区域背景色为黑色 */
+        height: calc(100vh - 260px);
+        width: 100%;
+        background-color: black; /*  内容区域背景色为黑色 */
+        overflow: auto; /* 添加滚动条 */
+        padding: 0; /* 移除内边距 */
+        margin: 0; /* 移除外边距 */
+    }
+    .layui-tab-item {
+        width: 100%;
+        border: 1px solid #444;
+        max-width: 99.9%;
+        background-color: #000;
+        white-space: pre-wrap; /* 保留空格和换行符，并在必要时换行 */
+        word-wrap: break-word; /* 允许长单词换行 */
+        word-break: break-all; /* 强制在任何字符处换行，包括单词中间 */ 
     }
     
     .layui-tab-title {
@@ -75,7 +86,16 @@
     <div class="layui-panel right-block">
         <!-- 新增选项卡等功能模块 -->
         <div class="layui-btn-container">
+            <button class="layui-btn hostAdd" lay-event="hostAdd">添加服务器</button>
             <button class="layui-btn" lay-on="tabAdd">新增 tab 项</button>
+        </div>
+        <div class="layui-col-md12">
+            <table class="layui-hide" id="demo" lay-filter="test"></table>
+            <!--  行工具 -->
+            <script type="text/html" id="barDemo">
+                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">连接</a>
+                <a class="layui-btn layui-btn-xs" lay-event="more">更多<i class="layui-icon layui-icon-down"></i></a>
+            </script>
         </div>
     </div>
 </div>
@@ -108,6 +128,138 @@
                 element.render('test-handle'); 
             },
         });
+        table.render({
+            elem: '#demo'
+            , url: "{% url 'webssh_info_api' %}" 
+            , page: true //开启分页
+            , cols: [[
+                { field: 'hostname', title: '服务器IP'}
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', align: "center" }
+            ]],
+        });
+        table.on('tool(test)', function (obj) {
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var data = obj.data;
+            if (obj.event === 'auth') {
+                 // 创建一个新的标签页
+                var label = data.hostname; // 使用服务器IP作为标签名
+                var content = '<div id="terminal"></div>'; // 用于显示伪终端输出的div
+                element.tabAdd('test-handle', {
+                    title: label,
+                    content: content,
+                    id: data.hostname, // 使用服务器IP作为标签的唯一标识
+                    change: true // 添加完毕后即自动切换
+                });
+                element.render('test-handle');
+
+                function get_box_size() {
+                    //init_width和init_height是终端默认的高度和宽度
+                    let init_width = 9;
+                    let init_height = 18;
+                    let windows_width = $('#terminal').width();
+                    let windows_height = $(window).height();
+                    return {
+                        cols: Math.floor(windows_width / init_width),
+                        rows: Math.floor(windows_height / init_height),
+                    }
+                }
+                // 初始化xterm.js终端
+                let cols = get_box_size().cols;
+                let rows = get_box_size().rows;
+                var term = new Terminal({
+                    cursorBlink: true,
+                    rows: rows,
+                    cols: cols,
+                    useStyle: true,
+                });
+                
+                // 连接WebSocket
+                var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+                var socketURL = protocol + window.location.host + '/webssh_terminal/' + '?host_address=' + data.host_address;
+                var sock = new WebSocket(socketURL);
+                sock.binaryType = "arraybuffer";  // 必须设置，zmodem才可以使用
+
+                // ZModem处理对象
+                var zsession;
+
+                // 简化的文件接收缓存。真实环境下应更复杂处理。
+                var download_buffer;
+
+                term.open(document.getElementById('terminal'));
+                // 设置WebSocket事件处理程序
+                sock.onopen = function () {
+                    term.on('data', function (data) {
+                        let send_data = JSON.stringify({
+                            'flag': 'entered_key',
+                            'entered_key': data,
+                            'cols': null,
+                            'rows': null
+                        });
+                        sock.send(send_data);
+                    });
+                    sock.onerror = function (event) {
+                        console.log('error:' + e);
+                    };
+                    sock.onmessage = function (event) {
+                        term.write(event.data);
+                    };
+                    sock.onclose = function (event) {
+                        term.write('\n\r\x1B[1;3;31m连接关闭！\x1B[0m');
+                    };
+                };
+
+                // 监听窗口大小变化
+                $(window).resize(function () {
+                    let cols = get_box_size().cols;
+                    let rows = get_box_size().rows;
+                    let send_data = JSON.stringify({ 'flag': 'resize', 'cols': cols, 'rows': rows });
+                    console.log("传递的宽度与高度：", send_data)
+                    sock.send(send_data);
+                    term.resize(cols, rows)
+                });
+
+            }else if (obj.event === 'more') {
+                dropdown.render({
+                    elem: this //触发事件的 DOM 对象
+                    , show: true //外部事件触发即显示
+                    , data: [{
+                        title: '编辑'
+                        , id: 'edit'
+                    }, {
+                        title: '删除'
+                        , id: 'del'
+                    }], click: function (menudata) {
+                        if (menudata.id === 'edit') {
+                            layer.msg('编辑操作，当前行 ID:' + data.host_address);
+                        }else if (menudata.id === 'del') {
+                            layer.msg('删除操作，当前行 ID:' + data.host_address);                            
+                        }
+
+                    }
+                })
+            }
+        });
+
+        $('.hostAdd').on('click', function () {
+            layer.open({
+                type: 2,
+                offset: 'r',
+                anim: 'slideLeft', // 从右往左
+                area: ['460px', '100%'],
+                closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
+                title: "添加主机信息",
+                shade: 0.6,
+                shift: 2,
+                anim: 0,
+                shadeClose: false,
+                id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
+                content: '{% url "webssh_add_info" %}',
+                move: false, // 禁止拖动
+                resize: false, // 禁止调整大小
+                skin: 'white-background' // 应用自定义的背景颜色类
+            });
+        });
+
     })
 </script>
 {% endblock %}

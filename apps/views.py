@@ -1611,3 +1611,75 @@ def docker_registries_create(request):
 @login_required
 def webssh_info(request):
     return render(request, 'webssh/webssh.html')
+
+@login_required
+def webssh_add_info(request):
+    return render(request, 'webssh/webssh_add.html')
+
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_info_api(request):
+    if request.method == "GET":
+        data = []
+        try:
+            host_list = HostMonitoring.objects.filter()
+            for auth in host_list:
+                host_name = auth.host_name
+                host_address = auth.host_address
+                dat = {"hostname":host_name,"host_address":host_address}
+                data.append(dat)
+            code = 0
+            msg = "查询成功"
+        except DockerException as e:
+            print(e)
+            code = 1
+            msg = "数据获取失败,报错如下: %s" % e
+        # 分页
+        count = len(data)  # 要在切片之前获取总数
+
+        if request.GET.get('page'):  # 如果为真说明数据表格带有分页（适配首页命名空间选择）
+            page = int(request.GET.get('page'))
+            limit = int(request.GET.get('limit'))
+            # data = data[0:10]
+            start = (page - 1) * limit  # 切片的起始值
+            end = page * limit  # 切片的末值
+            data = data[start:end]  # 返回指定数据范围
+
+        result = {'code': code, 'msg': msg, 'data': data, 'count': count}
+        return JsonResponse(result)
+    elif request.method == "POST":
+        address = request.POST.get("address", None)
+        port = request.POST.get("port", None)
+        hostname = request.POST.get("hostname", None)
+        username = request.POST.get("username", None)
+        password = request.POST.get("password", None)
+        print("获取数据:",address,port,hostname,username,password)
+        try:
+            # 把表单数据插入数据库
+            host_create = HostMonitoring(
+                host_name=hostname,
+                host_address=address,
+                host_port=port,
+                host_username=username,
+                host_password=password,
+
+            )
+            host_create.save()
+            code = 0
+            msg = "新增 %s 成功" % hostname
+        except Exception as e:
+            print(e)
+            code = 1
+            msg = "新增报错: %s " % e
+            
+        result = {'msg': msg, "code": code}
+        return JsonResponse(result)
+
+# 主机终端模块
+@xframe_options_exempt
+@login_required
+def webssh_terminal(request):
+    host_address = request.GET.get("host_address")
+    print("到了这里:",host_address)
+    return render(request, 'monitor/webssh.html',{"host_address":host_address})

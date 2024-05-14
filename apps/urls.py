@@ -48,4 +48,7 @@ urlpatterns = [
     re_path("docker_registries_create/",views.docker_registries_create,name="docker_registries_create"), # 镜像仓库创建页
 
     re_path("webssh_info/",views.webssh_info,name="webssh_info"),  # 主机终端首页
+    re_path("webssh_add_info/",views.webssh_add_info,name="webssh_add_info"),
+    re_path("webssh_info_api/",views.webssh_info_api,name="webssh_info_api"),
+    re_path("webssh_terminal/",views.webssh_terminal,name="webssh_terminal"),
 ]

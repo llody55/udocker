@@ -123,16 +123,17 @@ class HostMonitoring(models.Model):
     host_username = models.CharField(max_length=30,verbose_name="用户名",null=True)
     host_password = models.CharField(max_length=30,verbose_name="密码",null=True)
     host_status = models.CharField(max_length=30,verbose_name="主机存活状态",null=True)
+    host_encryption_key = models.CharField(max_length=255, verbose_name="加密密钥", blank=True)
     host_createdat_time = models.DateTimeField(auto_now=True, verbose_name="数据上报时间", null=True) 
 
     def set_password(self, raw_password):
         key = Fernet.generate_key()  # 生成密钥
-        self.encryption_key = key.decode()  # 保存密钥为字符串
+        self.host_encryption_key = key.decode()  # 保存密钥为字符串
         cipher_suite = Fernet(key)
         self.host_password = cipher_suite.encrypt(raw_password.encode()).decode()  # 保存加密后的密码为字符串
 
     def get_password(self):
-        cipher_suite = Fernet(self.encryption_key.encode())
+        cipher_suite = Fernet(self.host_encryption_key.encode())
         return cipher_suite.decrypt(self.host_password.encode()).decode()  # 解密密码
 
     def save(self, *args, **kwargs):
@@ -140,7 +141,7 @@ class HostMonitoring(models.Model):
             self.set_password(self.host_password)
         else:  # 对旧数据更新加密信息
             pass
-        super(Registries, self).save(*args, **kwargs)
+        super(HostMonitoring, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.host_name
