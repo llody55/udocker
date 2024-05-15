@@ -1,10 +1,12 @@
 import re
+import os
 import stat
 import json
 import uuid
 import time
-import datetime
 import docker
+import datetime
+import tempfile
 import paramiko
 import hashlib
 import humanize
@@ -27,7 +29,7 @@ from django.shortcuts import get_object_or_404
 from docker.types import IPAMPool, IPAMConfig
 from loguru import logger
 # Create your views here.
-from apps import docker_mod
+from apps import docker_mod,host_mod
 from docker.errors import DockerException, TLSParameterError,APIError, ContainerError, ImageNotFound,NotFound
 from django.utils.translation import gettext_lazy as _
 
@@ -1654,24 +1656,43 @@ def webssh_info_api(request):
         hostname = request.POST.get("hostname", None)
         username = request.POST.get("username", None)
         password = request.POST.get("password", None)
-        print("获取数据:",address,port,hostname,username,password)
-        try:
-            # 把表单数据插入数据库
-            host_create = HostMonitoring(
-                host_name=hostname,
-                host_address=address,
-                host_port=port,
-                host_username=username,
-                host_password=password,
+        # 尝试插入数据库之前，检查 host_address 是否唯一
+        if HostMonitoring.objects.filter(host_address=address).exists():
+            # 如果host_address已存在，返回错误信息
+            result = {'msg': f"host_address '{address}' 已存在，不能重复添加。", "code": 1}
+        else:
+            try:
+                # host_address 是唯一的，进行插入操作
+                host_create = HostMonitoring(
+                    host_name=hostname,
+                    host_address=address,
+                    host_port=port,
+                    host_username=username,
+                    host_password=password,
+                )
+                host_create.save()
+                result = {'msg': f"新增 {hostname} 成功", "code": 0}
+            except IntegrityError as e:
+                # 如果遇到了IntegrityError异常，说明有唯一性约束的违反
+                result = {'msg': f"添加失败，违反了唯一性约束: {e}", "code": 1}
+            except Exception as e:
+                # 处理其他的异常
+                result = {'msg': f"新增报错: {e}", "code": 1}
 
-            )
-            host_create.save()
-            code = 0
-            msg = "新增 %s 成功" % hostname
-        except Exception as e:
-            print(e)
+        return JsonResponse(result)
+    elif request.method == "DELETE":
+        request_data = QueryDict(request.body)
+        hostname = request_data.get("hostname")
+        try:
+            
+            host_delete = HostMonitoring.objects.get(host_name=hostname)
+        except ObjectDoesNotExist as e:
             code = 1
-            msg = "新增报错: %s " % e
+            msg = "删除报错: %s " % e
+        else:
+            HostMonitoring.objects.get(host_name=hostname).delete()
+            code = 0
+            msg = "删除 %s 成功" % hostname
             
         result = {'msg': msg, "code": code}
         return JsonResponse(result)
@@ -1682,4 +1703,264 @@ def webssh_info_api(request):
 def webssh_terminal(request):
     host_address = request.GET.get("host_address")
     print("到了这里:",host_address)
-    return render(request, 'monitor/webssh.html',{"host_address":host_address})
+    return render(request, 'webssh/webssh.html',{"host_address":host_address})
+
+# 主机Linux文件系统部分。
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_file_info(request):
+    host_address = request.GET.get("host_address")
+    print("主机ID：",host_address)
+    return render(request, 'webssh/webssh_file.html',{"host_address":host_address})
+
+
+# 上传基于SFTP直传--主机列表
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_update_info(request):
+    host_address = request.GET.get("host_address")
+    print("文件上传主机ID：",host_address)
+    return render(request, 'webssh/webssh_update.html',{"host_address":host_address})
+
+# 上传基于SFTP直传--web终端
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_upload_terminal_info(request):
+    host_address = request.GET.get("host_address")
+    remote_path = request.GET.get('selectedFilePath')
+    print("文件上传--web终端主机ID:",host_address)
+    print("传递的路径地址:",remote_path)
+    return render(request, 'webssh/webssh_upload_terminal.html',{"host_address":host_address,"remote_path":remote_path})
+
+
+# 数据暂存做整合返回前端
+uid_cache = {}
+
+# 获取所属用户
+def get_owner_name(ssh, uid):
+    if uid in uid_cache:
+        return uid_cache[uid]
+    stdin, stdout, stderr = ssh.exec_command("id -nu " + str(uid))
+    owner = stdout.read().decode().strip()
+
+    # Cache the result
+    uid_cache[uid] = owner
+    return owner
+
+# 文件列表方法
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_get_directory_list(request):
+     # 判断请求类型
+    if request.method == "GET":
+        host_address = request.GET.get("host_address")
+        # 获取路径参数
+        path = request.GET.get('path', '/')
+
+        # 通过ID在数据库中查出用于认证的信息并建立连接
+        host_ssh = HostMonitoring.objects.get(host_address=host_address)
+        host_ip = host_ssh.host_address
+        host_name = host_ssh.host_address
+        host_port = host_ssh.host_port
+        sys_user_name = host_ssh.host_username
+        # 解密存储的密码
+        encrypted_password = host_ssh.host_password
+        key = host_ssh.host_encryption_key
+        # 使用存储的密钥解密密码
+        sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+
+        # 连接sftp
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host_ip,host_port,sys_user_name,sys_user_passwd)
+
+        sftp = ssh.open_sftp()
+
+        # 判断路径是否存在
+        try:
+            sftp.stat(path)
+        except FileNotFoundError:
+            print('The path does not exist')
+            return JsonResponse({'code': 404, 'error': 'The path does not exist.'}, status=404)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            files = [ host_mod.fetch_file_info(executor, ssh, path, fileattr) for fileattr in sftp.listdir_attr(path)]
+        # After this line you have list of uids
+        uids = {file["owner_future"] for file in files}
+
+        stdin, stdout, stderr = ssh.exec_command("cat /etc/passwd")
+        output = stdout.read().decode()
+        for line in output.split("\n"):
+            try:
+                user_name, _, uid, *_ = line.split(":")
+                uid = int(uid)
+                uid_cache[uid] = user_name
+            except ValueError:
+                continue
+        
+        for file in files:
+            file["owner"] = uid_cache.get(file.pop('owner_future'), 'Unknown')  # read from cache
+        # 对文件进行排序，文件夹在前
+        files = sorted(files, key=lambda x: (not x['isFolder'], x['name']))
+        # 将结果生成为JsonResponse对象并返回
+        return JsonResponse({'code': 200, 'msg': '获取文件列表成功。', 'data': {'path': path, 'files': files}}, safe=False)
+        sftp.close()
+        ssh.close()
+    return JsonResponse({'code': 400, 'error': 'Invalid request.'}, status=400)
+
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_update_file_api(request):
+    if request.method == "POST":
+        host_address = request.GET.get('host_address')
+        remote_path = request.POST.get('remote_path')
+        file = request.FILES.get('file')
+        print("主机ID:",host_address,"上传路径:",remote_path,"文件:",file)
+
+        # 允许上传的文件格式
+        allowed_types = [
+            'application/octet-stream',
+            'application/zip',
+            'application/x-gzip',
+            'application/x-zip-compressed',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/x-icon',
+            'text/x-sh',
+        ]
+
+        # 如果想不限制文件的上传类型，可以去掉这个判断即可
+        if file.content_type in allowed_types:
+            # 文件在内存中，将其内容写入临时文件
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(file.read())
+                file_path = temp_file.name
+            
+            print("文件临时路径:",file_path)
+            try:
+                # 通过ID在数据库中查出用于认证的信息并建立连接
+                host_ssh = HostMonitoring.objects.get(host_address=host_address)
+                host_ip = host_ssh.host_address
+                host_port = int(host_ssh.host_port)
+                sys_user_name = host_ssh.host_username
+                # 解密存储的密码
+                encrypted_password = host_ssh.host_password
+                key = host_ssh.host_encryption_key
+                # 使用存储的密钥解密密码
+                sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+                try:
+                    # 建立SSH连接
+                    with paramiko.Transport((host_ip, host_port)) as sftp_client:
+                        sftp_client.connect(username=sys_user_name, password=sys_user_passwd)
+                        sftp = paramiko.SFTPClient.from_transport(sftp_client)
+                        sftp.put(file_path, remote_path + '/' + file.name)
+                        os.unlink(file_path)
+                        sftp_client.close()
+                    return JsonResponse({'success': True, 'message': '文件上传成功'})
+                except HostMonitoring.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': '无效的主机ID'})
+                except Exception as e:
+                    return JsonResponse({'success': False, 'message': '上传失败'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': '数据库连接异常'})
+        else:
+            print("上传失败,文件类型可能不在上传名单中",file.content_type)
+            return JsonResponse({'success': False, 'message': '无效的文件类型'})
+    else:
+        return JsonResponse({'success': False, 'message': '请求方法错误'})
+
+# 基于SFTP下载文件方法--web终端
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_download_file_api(request):
+    if request.method == "GET":
+        host_address = request.GET.get('host_address')
+        full_path = request.GET.get('fullPath')
+        print("主机ID:",host_address,"下载路径:",full_path)
+
+        host_ssh = None
+        sftp_client = None
+
+        try:
+            # 通过 ID 在数据库中查出用于认证的信息并建立连接
+            host_ssh = HostMonitoring.objects.get(host_address=host_address)
+            host_ip = host_ssh.host_address
+            host_name = host_ssh.host_address
+            host_port = int(host_ssh.host_port)
+            sys_user_name = host_ssh.host_username
+            # 解密存储的密码
+            encrypted_password = host_ssh.host_password
+            key = host_ssh.host_encryption_key
+            # 使用存储的密钥解密密码
+            sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+
+            # 连接到 SFTP 主机
+            transport = paramiko.Transport((host_ip, host_port))
+            transport.connect(username=sys_user_name, password=sys_user_passwd)
+            sftp_client = paramiko.SFTPClient.from_transport(transport)
+
+            remote_file = sftp_client.open(full_path, 'rb')
+            file_content = remote_file.read()
+            remote_file.close()
+
+            response = HttpResponse(file_content, content_type='application/octet-stream')
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(full_path)}"'
+            response['Content-Length'] = sftp_client.stat(full_path).st_size  # 设置 'Content-Length'
+        except FileNotFoundError:
+            response = JsonResponse({'error': 'File not found'})
+        finally:
+            if sftp_client:
+                sftp_client.close()
+            if transport:
+                transport.close()
+            return response
+
+# 基于SFTP删除文件方法--web终端
+@csrf_exempt
+@xframe_options_exempt
+@login_required
+def webssh_delete_file_api(request):
+    if request.method == 'POST':
+        selected_file_path = request.POST.get('selectedFilePath')
+        file_name = request.POST.get('fileName')
+        host_address = request.POST.get('host_address')
+        print("主机ID:",host_address,"删除文件:",file_name)
+
+        # 通过 ID 在数据库中查出用于认证的信息并建立连接
+        host_ssh = HostMonitoring.objects.get(host_address=host_address)
+        host_ip = host_ssh.host_address
+        host_name = host_ssh.host_address
+        host_port = int(host_ssh.host_port)
+        sys_user_name = host_ssh.host_username
+        # 解密存储的密码
+        encrypted_password = host_ssh.host_password
+        key = host_ssh.host_encryption_key
+        # 使用存储的密钥解密密码
+        sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+
+        try:
+            # 连接到 SFTP 主机
+            transport = paramiko.Transport((host_ip, host_port))
+            transport.connect(username=sys_user_name, password=sys_user_passwd)
+            sftp_client = paramiko.SFTPClient.from_transport(transport)
+            # 删除文件调用方法
+            # sftp_client.remove(selected_file_path + '/' + file_name)
+            host_mod.delete_file_or_folder(sftp_client, selected_file_path + '/' + file_name)
+            code = 0
+            msg = "文件 %s 删除成功" % file_name
+            result = {'msg': msg, "code": code}
+            return JsonResponse(result)
+        except FileNotFoundError:
+            code = 1
+            msg = "文件 %s 删除失败" % file_name
+            result = {'msg': msg, "code": code}
+            return JsonResponse(result)
+        finally:
+            sftp_client.close()

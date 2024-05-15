@@ -50,5 +50,13 @@ urlpatterns = [
     re_path("webssh_info/",views.webssh_info,name="webssh_info"),  # 主机终端首页
     re_path("webssh_add_info/",views.webssh_add_info,name="webssh_add_info"),
     re_path("webssh_info_api/",views.webssh_info_api,name="webssh_info_api"),
+    re_path("webssh_file_info/",views.webssh_file_info,name="webssh_file_info"), 
     re_path("webssh_terminal/",views.webssh_terminal,name="webssh_terminal"),
+    re_path("webssh_get_directory_list/",views.webssh_get_directory_list,name="webssh_get_directory_list"),  # 文件列表方法
+
+    re_path("webssh_update_info/",views.webssh_update_info,name="webssh_update_info"),  # 上传新方法
+    re_path("webssh_upload_terminal_info/",views.webssh_upload_terminal_info,name="webssh_upload_terminal_info"),  # 终端sftp直传方式
+    re_path("webssh_update_file_api/",views.webssh_update_file_api,name="webssh_update_file_api"),  # 上传API
+    re_path("webssh_download_file_api/",views.webssh_download_file_api,name="webssh_download_file_api"),  # 下载方法API
+    re_path("webssh_delete_file_api/",views.webssh_delete_file_api,name="webssh_delete_file_api"),  # 删除文件方法API
 ]

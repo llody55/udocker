@@ -15,7 +15,21 @@
 ## 资源
 > 只需要：1核1G即可，暂时只有X86版本
 
-## 安装与部署
+## 快速了解
+> udocker 是一个轻量级且好用的docker管理面板，并且自带一个webssh终端管理工具,可以很方便的管理服务器和上传下载文件。
+
+目前支持的功能有：
+
+   - 镜像管理
+   - 容器管理
+   - 网络管理
+   - 存储管理
+   - 事件中心
+   - 多语言(中英切换)
+   - webssh终端
+   - Linux文件管理器
+
+## 安装与部署(推荐)
 ```
 docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:v1.1-base
 ```
@@ -31,8 +45,12 @@ docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock
 ![8](./docs/images/8.png)
 ![9](./docs/images/9.jpg)
 ![10](./docs/images/10.jpg)
+![11](./docs/images/11.png)
+![12](./docs/images/12.jpg)
+![13](./docs/images/13.jpg)
 
-## 致谢
+## 问题反馈
+ - Issues
 
 ## Star趋势
 [![Stargazers over time](https://starchart.cc/llody55/udocker.svg)](https://github.com/llody55/udocker)

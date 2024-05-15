@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文件上传</title>
+  <link href="/static/layui/css/layui.css" rel="stylesheet" type="text/css" />
+  <style>
+    .upload-status {
+      font-weight: bold;
+    }
+
+    .upload-success {
+      color: green;
+    }
+
+    .upload-failed {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layui-upload">
+    <div class="layui-inline">
+      <button type="button" class="layui-btn layui-btn-normal" id="ID-upload-demo-files">选择多文件</button>
+    </div>
+    <!-- <div class="layui-inline">
+        <label class="layui-form-label">远程路径:</label>
+        <div class="layui-input-inline">
+            <input type="text" id="remote-path" placeholder="请输入远程存储路径" autocomplete="off" class="layui-input">
+        </div>
+      </div> -->
+    <div class="layui-inline">
+      <button type="button" class="layui-btn layui-btn-warm" id="ID-upload-demo-files-action">开始上传</button>
+    </div>
+    <div class="layui-upload-list">
+      <table class="layui-table">
+        <colgroup>
+          <col style="min-width: 100px;">
+          <col width="150">
+          <col width="260">
+          <col width="150">
+        </colgroup>
+        <thead>
+          <th>文件名</th>
+          <th>大小</th>
+          <th>上传进度</th>
+          <th>操作</th>
+          <th>状态</th>
+        </thead>
+        <tbody id="ID-upload-demo-files-list"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/static/layui/layui.js"></script>
+  <script>
+    layui.use(['jquery', 'upload', 'element'], function (upload) {
+      var upload = layui.upload;
+      var element = layui.element;
+      var $ = layui.$;
+      var host_address = "{{ host_address }}";
+      var remote_path = "{{ remote_path }}";
+      console.log("第二层弹出上传栏:" + remote_path)
+      var uploadListIns = upload.render({
+        elem: '#ID-upload-demo-files',
+        elemList: $('#ID-upload-demo-files-list'),
+        url: '{% url "webssh_update_file_api" %}?host_address=' + host_address,
+        accept: 'file',
+        multiple: true,
+        number: 10,
+        auto: false,
+        data: { remote_path: '' },
+        bindAction: '#ID-upload-demo-files-action',
+        before: function (obj) {
+          this.data.remote_path = remote_path
+        },
+        choose: function (obj) {
+          var that = this;
+          var files = this.files = obj.pushFile();
+
+          obj.preview(function (index, file, result) {
+            var tr = $(['<tr id="upload-' + index + '">',
+            '<td>' + file.name + '</td>',
+            '<td>' + (file.size / 1024 / 1024).toFixed(1) + 'Mb</td>',
+            '<td><div class="layui-progress" lay-filter="progress-demo-' + index + '"><div class="layui-progress-bar" lay-percent=""></div></div></td>',
+              '<td><button class="layui-btn layui-btn-xs demo-reload">重传</button> <button class="layui-btn layui-btn-xs demo-delete">删除</button></td>',
+            '<td id="status-' + index + '" class="upload-status">等待上传</td>',
+              '</tr>'].join(''));
+
+            // 单个重传
+            tr.find('.demo-reload').on('click', function () {
+              obj.upload(index, file);
+            });
+
+            // 单个删除
+            tr.find('.demo-delete').on('click', function () {
+              delete files[index];
+              tr.remove();
+              uploadListIns.config.elem.next()[0].value = '';
+            });
+
+            that.elemList.append(tr);
+            element.render('progress');
+          });
+        },
+        done: function (res, index, upload) {
+          var statusElem = $('#status-' + index);
+          if (res.success) {
+            statusElem.html('<span class="upload-success">上传成功</span>');
+          } else {
+            statusElem.html('<span class="upload-failed">上传失败</span>');
+          }
+        },
+        allDone: function (obj) { // 多文件上传完毕后的状态回调
+          console.log(obj)
+        },
+        error: function (index, upload) {
+          var statusElem = $('#status-' + index);
+          statusElem.html('<span class="upload-failed">上传失败</span>');
+        },
+        progress: function (n, elem, e, index) {
+          var statusElem = $('#status-' + index);
+          statusElem.text('上传中 ' + n + '%');
+          element.progress('progress-demo-' + index, n + '%');
+        }
+      });
+
+      $('#ID-upload-demo-files-action').on('click', function () {
+        // 全部上传方式
+        // $('.upload-status').text('上传中 0%').addClass('upload-failed').removeClass('upload-success');
+        // $('.layui-progress-bar').css('width', '0%');
+        // 上传成功的就不进行再次上传了
+        $('.upload-status').each(function () {
+          var statusElem = $(this);
+          if (statusElem.hasClass('upload-success')) {
+            statusElem.text('上传成功');
+          } else {
+            statusElem.text('上传中 0%').addClass('upload-failed').removeClass('upload-success');
+            $('.layui-progress-bar').css('width', '0%');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

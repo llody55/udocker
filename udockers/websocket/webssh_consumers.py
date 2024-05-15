@@ -4,6 +4,7 @@ from threading import Thread
 from channels.generic.websocket import WebsocketConsumer
 from urllib.parse import parse_qs
 from apps.models import *
+from apps import host_mod,docker_mod
 
 # 错误追踪模块
 import traceback,sys
@@ -119,7 +120,11 @@ class SSHConsumer(WebsocketConsumer):
         self.host_name = host_ssh.host_address
         self.host_port = host_ssh.host_port
         self.sys_user_name = host_ssh.host_username
-        self.sys_user_passwd = host_ssh.host_password
+        # 解密存储的密码
+        encrypted_password = host_ssh.host_password
+        key = host_ssh.host_encryption_key
+        # 使用存储的密钥解密密码
+        self.sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
         #accept表示服务端允许和客户端创建连接.
         self.accept()
 

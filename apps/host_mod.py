@@ -5,18 +5,24 @@ import traceback
 # 主要使用在获取文件时间处
 import datetime as dtime
 from .models import HostMonitoring
+from apps import docker_mod
+from cryptography.fernet import Fernet
 # 多线程
 from concurrent.futures import ThreadPoolExecutor
 
 
 # 主机sftp登录方法
-def get_sftp_client(host_ssh_id):
+def get_sftp_client(host_address):
     # 通过ID在数据库中查出用于认证的信息并建立连接
-    host_ssh = HostMonitoring.objects.get(id=host_ssh_id)
+    host_ssh = HostMonitoring.objects.get(host_address=host_address)
     host_ip = host_ssh.host_address
     host_port = int(host_ssh.host_port)
     sys_user_name = host_ssh.host_username
-    sys_user_passwd = host_ssh.host_password
+    # 解密存储的密码
+    encrypted_password = host_ssh.host_password
+    key = host_ssh.host_encryption_key
+    # 使用存储的密钥解密密码
+    sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
             
     # 建立SSH连接
     try:
@@ -51,3 +57,42 @@ def delete_file_or_folder(sftp_client, path):
     except FileNotFoundError:
         # 如果文件或文件夹不存在，忽略该异常，继续执行
         pass  
+
+# 文件单位换算器
+def human_read_format(size):
+    # 定义转换为易读格式的函数
+    if size < 1024:
+        # 大小小于1K时，显示为B
+        return f"{size} B"
+    elif size < 1024**2:
+        # 大小1K到1M之间时，显示为KB
+        return f"{round(size/1024, 2)} KB"
+    elif size < 1024**3:
+        # 大小1M到1G之间时，显示为MB
+        return f"{round(size/1024**2, 2)} MB"
+    else:
+        # 大小在1G以上时，显示为GB
+        return f"{round(size/1024**3, 2)} GB"
+
+# 获取文件列表信息
+def fetch_file_info(executor, ssh, path, fileattr):
+    if stat.S_ISDIR(fileattr.st_mode):
+        size = None  # Is a directory, size set to None
+    else:
+        size = human_read_format(fileattr.st_size)  # If it's not a directory, convert to an easily readable format
+
+    permission = stat.filemode(fileattr.st_mode)
+    # 获取所有的Uid其实没必要
+    # owner_future = executor.submit(get_owner_name, ssh, fileattr.st_uid)
+    # 获取当前的目录UID即可
+    owner_future = fileattr.st_uid
+
+    return {
+            'name': fileattr.filename,
+            'date': dtime.datetime.fromtimestamp(fileattr.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
+            'size': size,
+            'owner_future': owner_future, 
+            'permissions': permission,
+            # 'permissions': oct(fileattr.st_mode)[-3:],
+            'isFolder': stat.S_ISDIR(fileattr.st_mode),
+        }
