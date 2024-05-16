@@ -41,7 +41,7 @@
     <div class="layui-row layui-col-space15">
       <div class="layui-col-md12">
         <fieldset class="layui-elem-field layui-field-title">
-          <legend>Linux 文件管理器</legend>
+          <legend>Linux 文件管理器 -- {{host_address}}</legend>
           <div class="layui-field-box">
             <div class="layui-form-item">
               <button id="go-back" class="layui-btn return-btn control-btn">返回</button>
@@ -245,10 +245,9 @@
         var layEvent = obj.event;
         var selectedFilePath = $("#current-path").val();
         if (obj.event === 'download') {
-          // 实现简单的文件下载，在浏览器打开一个新的标签页进行下载，同时在当前窗口中重新加载
-          // var fullPath = encodeURIComponent(selectedFilePath + '/' + data.name);
-          // var url = '{% url "webssh_download_file_api" %}' + "?hostId=" + hostId + '&fullPath=' + fullPath;
-          // window.open(url, '_blank');
+          layer.msg("请求中，请稍等")
+          // 显示 loading 效果
+          var loadingIndex = layer.load(3);
 
           // 利用浏览器自带的下载器进行文件下载,缺点：无法控制整个下载过程，无法做出丰富的交互体验。
           var fullPath = encodeURIComponent(selectedFilePath + '/' + data.name);
@@ -266,6 +265,8 @@
           
           // 清理DOM
           document.body.removeChild(downloadLink);
+          // 关闭 loading 效果
+          layer.close(loadingIndex);
           
         } else if (obj.event === 'delete') {
           layer.confirm('确认删除 <span style="color: red">'+ data.name +'</span>文件吗？</br><span style="color: red">请注意，此删除不可逆！！！', function (index) {

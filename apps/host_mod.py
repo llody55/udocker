@@ -10,31 +10,34 @@ from cryptography.fernet import Fernet
 # 多线程
 from concurrent.futures import ThreadPoolExecutor
 
-
 # 主机sftp登录方法
-def get_sftp_client(host_address):
-    # 通过ID在数据库中查出用于认证的信息并建立连接
-    host_ssh = HostMonitoring.objects.get(host_address=host_address)
-    host_ip = host_ssh.host_address
-    host_port = int(host_ssh.host_port)
-    sys_user_name = host_ssh.host_username
-    # 解密存储的密码
-    encrypted_password = host_ssh.host_password
-    key = host_ssh.host_encryption_key
-    # 使用存储的密钥解密密码
-    sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
-            
-    # 建立SSH连接
-    try:
-        sftp_client = paramiko.SFTPClient(host_ip, host_port, sys_user_name, sys_user_passwd)
-        sftp_client.connect()
-        return True, sftp_client
-    except Exception as e:
-        print(f"Error connecting to host: {e}")
-        traceback.print_exc()
-        print("get_sftp_client 详细错误:", e)
+class SSHConnectionManager:
+    def __init__(self):
+        self.connections = {}
 
-    return False, None
+    def get_connection(self, host_address):
+        if host_address not in self.connections:
+            host_ssh = HostMonitoring.objects.get(host_address=host_address)
+            host_ip = host_ssh.host_address
+            host_port = int(host_ssh.host_port)
+            sys_user_name = host_ssh.host_username
+            encrypted_password = host_ssh.host_password
+            key = host_ssh.host_encryption_key
+            sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+
+            transport = paramiko.Transport((host_ip, host_port))
+            transport.connect(username=sys_user_name, password=sys_user_passwd)
+            self.connections[host_address] = transport
+
+        return self.connections[host_address]
+
+    def close_all_connections(self):
+        for transport in self.connections.values():
+            transport.close()
+        self.connections.clear()
+
+# 单例模式的SSH连接管理器
+ssh_manager = SSHConnectionManager()
 
 # 用于判断用户删除的是文件还是文件夹
 def delete_file_or_folder(sftp_client, path):

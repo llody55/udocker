@@ -1761,22 +1761,11 @@ def webssh_get_directory_list(request):
         # 获取路径参数
         path = request.GET.get('path', '/')
 
-        # 通过ID在数据库中查出用于认证的信息并建立连接
-        host_ssh = HostMonitoring.objects.get(host_address=host_address)
-        host_ip = host_ssh.host_address
-        host_name = host_ssh.host_address
-        host_port = host_ssh.host_port
-        sys_user_name = host_ssh.host_username
-        # 解密存储的密码
-        encrypted_password = host_ssh.host_password
-        key = host_ssh.host_encryption_key
-        # 使用存储的密钥解密密码
-        sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
-
-        # 连接sftp
+        # 获取SSH连接
+        transport = host_mod.ssh_manager.get_connection(host_address)
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(host_ip,host_port,sys_user_name,sys_user_passwd)
+        ssh._transport = transport
 
         sftp = ssh.open_sftp()
 
@@ -1844,24 +1833,14 @@ def webssh_update_file_api(request):
             
             print("文件临时路径:",file_path)
             try:
-                # 通过ID在数据库中查出用于认证的信息并建立连接
-                host_ssh = HostMonitoring.objects.get(host_address=host_address)
-                host_ip = host_ssh.host_address
-                host_port = int(host_ssh.host_port)
-                sys_user_name = host_ssh.host_username
-                # 解密存储的密码
-                encrypted_password = host_ssh.host_password
-                key = host_ssh.host_encryption_key
-                # 使用存储的密钥解密密码
-                sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+                # 获取SSH连接连接池
+                transport = host_mod.ssh_manager.get_connection(host_address)
                 try:
                     # 建立SSH连接
-                    with paramiko.Transport((host_ip, host_port)) as sftp_client:
-                        sftp_client.connect(username=sys_user_name, password=sys_user_passwd)
-                        sftp = paramiko.SFTPClient.from_transport(sftp_client)
-                        sftp.put(file_path, remote_path + '/' + file.name)
-                        os.unlink(file_path)
-                        sftp_client.close()
+                    sftp = paramiko.SFTPClient.from_transport(transport)
+                    sftp.put(file_path, remote_path + '/' + file.name)
+                    os.unlink(file_path)
+                    sftp.close()
                     return JsonResponse({'success': True, 'message': '文件上传成功'})
                 except HostMonitoring.DoesNotExist:
                     return JsonResponse({'success': False, 'message': '无效的主机ID'})
@@ -1885,39 +1864,22 @@ def webssh_download_file_api(request):
         full_path = request.GET.get('fullPath')
         print("主机ID:",host_address,"下载路径:",full_path)
 
-        host_ssh = None
-        sftp_client = None
-
         try:
-            # 通过 ID 在数据库中查出用于认证的信息并建立连接
-            host_ssh = HostMonitoring.objects.get(host_address=host_address)
-            host_ip = host_ssh.host_address
-            host_name = host_ssh.host_address
-            host_port = int(host_ssh.host_port)
-            sys_user_name = host_ssh.host_username
-            # 解密存储的密码
-            encrypted_password = host_ssh.host_password
-            key = host_ssh.host_encryption_key
-            # 使用存储的密钥解密密码
-            sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
+            transport = host_mod.ssh_manager.get_connection(host_address)
+            sftp = paramiko.SFTPClient.from_transport(transport)
 
-            # 连接到 SFTP 主机
-            transport = paramiko.Transport((host_ip, host_port))
-            transport.connect(username=sys_user_name, password=sys_user_passwd)
-            sftp_client = paramiko.SFTPClient.from_transport(transport)
-
-            remote_file = sftp_client.open(full_path, 'rb')
+            remote_file = sftp.open(full_path, 'rb')
             file_content = remote_file.read()
             remote_file.close()
 
             response = HttpResponse(file_content, content_type='application/octet-stream')
             response['Content-Disposition'] = f'attachment; filename="{os.path.basename(full_path)}"'
-            response['Content-Length'] = sftp_client.stat(full_path).st_size  # 设置 'Content-Length'
+            response['Content-Length'] = sftp.stat(full_path).st_size  # 设置 'Content-Length'
         except FileNotFoundError:
             response = JsonResponse({'error': 'File not found'})
         finally:
-            if sftp_client:
-                sftp_client.close()
+            if sftp:
+                sftp.close()
             if transport:
                 transport.close()
             return response
@@ -1933,26 +1895,13 @@ def webssh_delete_file_api(request):
         host_address = request.POST.get('host_address')
         print("主机ID:",host_address,"删除文件:",file_name)
 
-        # 通过 ID 在数据库中查出用于认证的信息并建立连接
-        host_ssh = HostMonitoring.objects.get(host_address=host_address)
-        host_ip = host_ssh.host_address
-        host_name = host_ssh.host_address
-        host_port = int(host_ssh.host_port)
-        sys_user_name = host_ssh.host_username
-        # 解密存储的密码
-        encrypted_password = host_ssh.host_password
-        key = host_ssh.host_encryption_key
-        # 使用存储的密钥解密密码
-        sys_user_passwd = docker_mod.decrypt_password(encrypted_password, key)
-
         try:
             # 连接到 SFTP 主机
-            transport = paramiko.Transport((host_ip, host_port))
-            transport.connect(username=sys_user_name, password=sys_user_passwd)
-            sftp_client = paramiko.SFTPClient.from_transport(transport)
+            transport = host_mod.ssh_manager.get_connection(host_address)
+            sftp = paramiko.SFTPClient.from_transport(transport)
             # 删除文件调用方法
             # sftp_client.remove(selected_file_path + '/' + file_name)
-            host_mod.delete_file_or_folder(sftp_client, selected_file_path + '/' + file_name)
+            host_mod.delete_file_or_folder(sftp, selected_file_path + '/' + file_name)
             code = 0
             msg = "文件 %s 删除成功" % file_name
             result = {'msg': msg, "code": code}
@@ -1963,4 +1912,4 @@ def webssh_delete_file_api(request):
             result = {'msg': msg, "code": code}
             return JsonResponse(result)
         finally:
-            sftp_client.close()
+            sftp.close()
