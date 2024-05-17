@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-11 09:27+0800\n"
+"POT-Creation-Date: 2024-05-17 17:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,6 +24,7 @@ msgstr ""
 #: templates/network/docker_network_list.html:36
 #: templates/registries/docker_registries_list.html:37
 #: templates/volumes/docker_volumes_list.html:36
+#: templates/webssh/webssh.html:82
 msgid "首页"
 msgstr "Home"
 
@@ -113,34 +114,42 @@ msgid "日志"
 msgstr "logs"
 
 #: templates/container/docker_container_list.html:84
+#: templates/docker_base.html:211
 msgid "终端"
 msgstr "terminal"
+
+#: templates/container/docker_container_list.html:85
+#: templates/webssh/webssh.html:112
+msgid "更多"
+msgstr "More"
 
 #: templates/container/docker_container_list.html:371
 msgid "启动"
 msgstr "Start"
 
-#: templates/container/docker_container_list.html:375
+#: templates/container/docker_container_list.html:377
 msgid "停止"
 msgstr "Stop"
 
-#: templates/container/docker_container_list.html:379
+#: templates/container/docker_container_list.html:383
 msgid "重启"
 msgstr "Restarts"
 
-#: templates/container/docker_container_list.html:383
+#: templates/container/docker_container_list.html:389
+#: templates/webssh/webssh.html:248
 msgid "编辑"
 msgstr "Edit"
 
-#: templates/container/docker_container_list.html:387
+#: templates/container/docker_container_list.html:395
 #: templates/images/docker_images_list.html:68
 #: templates/network/docker_network_list.html:66
 #: templates/registries/docker_registries_list.html:66
 #: templates/volumes/docker_volumes_list.html:66
+#: templates/webssh/webssh.html:254 templates/webssh/webssh_file.html:62
 msgid "删除"
 msgstr "Remove"
 
-#: templates/docker_base.html:135 templates/docker_base.html:228
+#: templates/docker_base.html:135 templates/docker_base.html:233
 msgid "Udocker 控制台"
 msgstr "Udocker console"
 
@@ -196,11 +205,15 @@ msgstr "System settings"
 msgid "镜像仓库"
 msgstr "Registries"
 
-#: templates/docker_base.html:208
+#: templates/docker_base.html:208 templates/webssh/webssh.html:83
 msgid "用户中心"
 msgstr "User"
 
-#: templates/docker_base.html:211
+#: templates/docker_base.html:210
+msgid "账户"
+msgstr "Account"
+
+#: templates/docker_base.html:216
 msgid "关于"
 msgstr "About"
 
@@ -282,7 +295,7 @@ msgstr "License information"
 
 #: templates/event/docker_event_list.html:37
 msgid "Docker事件列表"
-msgstr ""
+msgstr "Docker event"
 
 #: templates/event/docker_event_list.html:59
 #: templates/event/docker_event_list.html:61
@@ -339,11 +352,80 @@ msgstr "Network"
 msgid "清理卷映射"
 msgstr "Clean volume"
 
-#: udockers/settings.py:148
+#: templates/webssh/webssh.html:84
+msgid "主机终端"
+msgstr "terminal"
+
+#: templates/webssh/webssh.html:102
+msgid "添加服务器"
+msgstr "Add"
+
+#: templates/webssh/webssh.html:111
+msgid "连接"
+msgstr "connect"
+
+#: templates/webssh/webssh.html:242 templates/webssh/webssh.html:265
+#: templates/webssh/webssh_file.html:44
+msgid "文件管理器"
+msgstr "file manager"
+
+#: templates/webssh/webssh_add.html:5
+msgid "新增资产"
+msgstr "Add new assets"
+
+#: templates/webssh/webssh_add.html:64
+msgid "创建连接"
+msgstr "Create connection"
+
+#: templates/webssh/webssh_add.html:75
+msgid "服务器IP"
+msgstr "IP"
+
+#: templates/webssh/webssh_add.html:106
+msgid "密码"
+msgstr "passwd"
+
+#: templates/webssh/webssh_add.html:120
+msgid "备注"
+msgstr "Remark"
+
+#: templates/webssh/webssh_add.html:130
+msgid "提交"
+msgstr "submit"
+
+#: templates/webssh/webssh_add.html:131
+msgid "关闭"
+msgstr "close"
+
+#: templates/webssh/webssh_file.html:47
+msgid "返回"
+msgstr "backing-out"
+
+#: templates/webssh/webssh_file.html:48
+msgid "当前路径"
+msgstr "current path"
+
+#: templates/webssh/webssh_file.html:52
+msgid "新建目录"
+msgstr "Create directory"
+
+#: templates/webssh/webssh_file.html:55
+msgid "上传文件"
+msgstr "upload"
+
+#: templates/webssh/webssh_file.html:57
+msgid "刷新"
+msgstr "refresh"
+
+#: templates/webssh/webssh_file.html:61
+msgid "下载"
+msgstr "download"
+
+#: udockers/settings.py:149
 msgid "English"
 msgstr "English"
 
-#: udockers/settings.py:149
+#: udockers/settings.py:150
 msgid "Chinese"
 msgstr "简体中文"
 

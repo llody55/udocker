@@ -49,6 +49,62 @@ docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock
 ![12](./docs/images/12.jpg)
 ![13](./docs/images/13.jpg)
 
+
+## HTTPS代理示例
+### 七层反向代理
+```nginx
+server {
+    listen      443 ssl;
+    server_name udocker.llody.top;
+    client_max_body_size 1000m;
+    ssl_certificate /etc/nginx/llody.top/udocker.pem;
+    ssl_certificate_key /etc/nginx/llody.top/udocker.key;
+    ssl_session_timeout 5m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    ssl_prefer_server_ciphers on;
+    
+
+    location / {
+        proxy_pass http://192.168.1.236:9002/;
+        proxy_set_header Host $http_host;
+        proxy_set_header  X-Real-IP    $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    location /apps/webssh_terminal/ {
+        proxy_pass http://192.168.1.236:9002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    location /apps/docker_logs/ {
+        proxy_pass http://192.168.1.236:9002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+  location /healthz {
+    return 200;
+  }
+}
+```
+> 主要用于udocker面板的wss和https代理
+### 四层反向代理
+```nginx
+server {
+  listen 8000;
+  proxy_pass 192.168.1.236:8000;
+}
+```
+> 此代理主要是docker容器终端接口，存在**风险** ，暂时只实现连接，非必要可不做代理。
+
 ## 问题反馈
  - Issues
 

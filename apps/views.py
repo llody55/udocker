@@ -99,6 +99,7 @@ def index(request):
     return render(request, 'docker_info.html',{"connect":connect})
 
 # 登录
+@csrf_exempt
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -128,12 +129,14 @@ def user_login(request):
         return render(request, 'login.html')
 
 # 登出
+@csrf_exempt
 def user_logout(request):
     logout(request)
     # 重定向到登录页面，这里使用了Django的默认登录路由
     return redirect('/apps/user_login/')
 
 # 重置密码
+@csrf_exempt
 @login_required
 def password_reset_request(request):
     if request.method == "GET":
@@ -158,13 +161,15 @@ def password_reset_request(request):
         else:
             # 如果当前密码验证失败，返回错误信息
             return JsonResponse({'error': '当前密码不正确，请重试','code':'1'})
-            
+
+@csrf_exempt            
 @login_required
 def docker_container(request):
     return render(request, 'container/docker_container_list.html')
 
 
 # 容器列表 API
+@csrf_exempt
 @login_required
 def docker_container_api(request):
     if request.method == "GET":
@@ -571,11 +576,13 @@ def docker_container_info(request):
                "cpu_ops":cpu_ops,"mem_ops":mem_ops,"rx_tx_bytes":rx_tx_bytes,"usage_volumes":usage_volumes}
     return render(request, 'container/docker_container_info.html',{"connect":connect})
 
+@csrf_exempt
 @login_required
 def docker_container_create(request):
     return render(request, 'container/docker_container_create.html')            
 
 # 容器启动方法
+@csrf_exempt
 @login_required
 def docker_container_start_api(request):
     name = request.GET.get("name")
@@ -603,6 +610,7 @@ def docker_container_start_api(request):
     return JsonResponse(result)
 
 # 容器重启方法
+@csrf_exempt
 @login_required
 def docker_container_restart_api(request):
     name = request.GET.get("name")
@@ -624,6 +632,7 @@ def docker_container_restart_api(request):
     return JsonResponse(result)
 
 # 容器停止方法
+@csrf_exempt
 @login_required
 def docker_container_stop_api(request):
     name = request.GET.get("name")
@@ -651,6 +660,7 @@ def docker_container_stop_api(request):
     return JsonResponse(result)
 
 # 容器删除方法
+@csrf_exempt
 @login_required
 def docker_container_delete_api(request):
     name = request.GET.get("name")
@@ -682,6 +692,7 @@ def docker_container_delete_api(request):
     return JsonResponse(result)
 
 # 容器重命名接口
+@csrf_exempt
 @login_required
 def docker_container_rename_api(request):
     search_key = request.GET.get("search_key")
@@ -713,6 +724,7 @@ def docker_container_rename_api(request):
     return JsonResponse(result)
 
 # 容器更新重启策略接口
+@csrf_exempt
 @login_required
 def docker_container_restart_policy_api(request):
     # 接收前端POST传递的参数
@@ -737,6 +749,7 @@ def docker_container_restart_policy_api(request):
     return JsonResponse(result)
 
 # 批量重启方法
+@csrf_exempt
 @login_required
 def docker_container_batchrestart_api(request):
     if request.method == "BATCHRESTART":
@@ -777,6 +790,7 @@ def docker_container_batchrestart_api(request):
         return JsonResponse(result)
 
 
+
 @xframe_options_exempt
 @login_required
 def docker_logs(request):
@@ -802,6 +816,7 @@ def docker_terminal(request):
 def docker_image_info(request):
     return render(request, 'images/docker_images_list.html')
 
+@csrf_exempt
 @login_required
 def docker_images_api(request):
     if request.method == "GET":
@@ -1107,6 +1122,7 @@ def get_volumes_list(request):
 def docker_network_info(request):
     return render(request, 'network/docker_network_list.html')
 
+@csrf_exempt
 @login_required
 def docker_network_api(request):
     if request.method == "GET":
@@ -1296,6 +1312,7 @@ def docker_network_details(request):
 def docker_volumes_info(request):
     return render(request, 'volumes/docker_volumes_list.html')
 
+@csrf_exempt
 @login_required
 def docker_volumes_api(request):
     if request.method == "GET":
@@ -1515,6 +1532,7 @@ def docker_event_api(request):
 def docker_registries_info(request):
     return render(request, 'registries/docker_registries_list.html')
 
+@csrf_exempt
 @login_required
 def docker_registries_api(request):
     if request.method == "GET":

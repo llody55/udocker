@@ -29,6 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://add.llody.top']
 
 # Application definition
  
@@ -164,6 +165,10 @@ LOCALE_PATHS = [
 ]
 # 运行页面在django框架内加载
 X_FRAME_OPTIONS = 'ALLOWALL'
+
+# 在HTTPS环境下确保CSRF配置
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

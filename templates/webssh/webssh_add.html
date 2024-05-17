@@ -5,6 +5,7 @@
     <title>新增资产</title>
     <script src="/static/layui/layui.js"></script>
     <link href="/static/layui/css/layui.css" rel="stylesheet" />
+    {% load i18n %}
     <style>
       .form-container {
         display: flex;
@@ -60,7 +61,7 @@
         <div class="layui-row">
           <div class="layui-col-md12">
             <fieldset class="layui-elem-field layui-field-title">
-              <legend>创建连接</legend>
+              <legend>{% translate "创建连接" %}</legend>
             </fieldset>
           </div>
 
@@ -71,7 +72,7 @@
                   <!-- <div class="layui-card-header">服务器信息</div> -->
                   <div class="layui-card-body layui-bg-gray">
                     <div class="layui-form-item">
-                      <label class="layui-form-label"><span class="required-star">*</span>服务器IP</label>
+                      <label class="layui-form-label"><span class="required-star">*</span>{% translate "服务器IP" %}</label>
                       <div class="layui-input-inline" style="width: 150px;">
                         <input type="text" name="address" required value="" lay-verify="required|ip" placeholder="服务器IP" autocomplete="off" class="layui-input" />
                       </div>
@@ -88,9 +89,9 @@
                   <!-- <div class="layui-card-header">服务器信息</div> -->
                   <div class="layui-card-body layui-bg-gray">
                     <div class="layui-form-item">
-                      <label class="layui-form-label"><span class="required-star">*</span>账号</label>
+                      <label class="layui-form-label"><span class="required-star">*</span>{% translate "账户" %}</label>
                       <div class="layui-input-inline" style="width: 210px;">
-                        <input type="text" name="username" required value="root" lay-verify="required" placeholder="请输入SSH账号" autocomplete="off" class="layui-input" />
+                        <input type="text" name="username" required value="root" lay-verify="required" placeholder="请输入SSH账户" autocomplete="off" class="layui-input" />
                       </div>
                       <div class="layui-form-mid layui-text-em layui-font-red">{{ msg }}</div>
                     </div>
@@ -102,7 +103,7 @@
                   <!-- <div class="layui-card-header">服务器信息</div> -->
                   <div class="layui-card-body layui-bg-gray">
                     <div class="layui-form-item">
-                      <label class="layui-form-label"><span class="required-star">*</span>密码</label>
+                      <label class="layui-form-label"><span class="required-star">*</span>{% translate "密码" %}</label>
                       <div class="layui-input-inline" style="width: 210px;">
                         <input type="password" name="password" required value="" lay-verify="required" placeholder="请输入SSH密码" autocomplete="off" class="layui-input" />
                       </div>
@@ -116,7 +117,7 @@
                   <!-- <div class="layui-card-header">服务器信息</div> -->
                   <div class="layui-card-body layui-bg-gray">
                     <div class="layui-form-item">
-                      <label class="layui-form-label"><span class="required-star">*</span>备注</label>
+                      <label class="layui-form-label"><span class="required-star">*</span>{% translate "备注" %}</label>
                       <div class="layui-input-inline" style="width: 210px;">
                         <input type="text" name="hostname" required value="" lay-verify="required" placeholder="请输入备注" autocomplete="off" class="layui-input" />
                       </div>
@@ -126,8 +127,8 @@
                 </div>
               </div>
               <div class="submit-btn-fixed">
-                <button class="layui-btn" lay-submit lay-filter="formSubmit">提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary" id="closeBtn">关闭</button>
+                <button class="layui-btn" lay-submit lay-filter="formSubmit">{% translate "提交" %}</button>
+                <button type="reset" class="layui-btn layui-btn-primary" id="closeBtn">{% translate "关闭" %}</button>
               </div>
             </form>
             <div id="errorBox" style="display:none;color:red;"></div>
@@ -156,7 +157,6 @@
         })
         form.on('submit(formSubmit)', function (data) {
           data = data.field
-          console.log('表单数据' + data)
           // 显示 loading 效果
           var loadingIndex = layer.load(2)
           // 获取表单数据

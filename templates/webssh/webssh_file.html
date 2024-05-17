@@ -9,7 +9,7 @@
   <link href="/static/layui/css/layui.css" rel="stylesheet" type="text/css" />
   <link href="/static/webuploader/webuploader.css" rel="stylesheet" type="text/css" />
   <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-
+  {% load i18n %}
   <style>
     .folder-name {
       background-color: #d9edff;
@@ -41,25 +41,25 @@
     <div class="layui-row layui-col-space15">
       <div class="layui-col-md12">
         <fieldset class="layui-elem-field layui-field-title">
-          <legend>Linux 文件管理器 -- {{host_address}}</legend>
+          <legend>Linux {% translate "文件管理器" %} -- {{host_address}}</legend>
           <div class="layui-field-box">
             <div class="layui-form-item">
-              <button id="go-back" class="layui-btn return-btn control-btn">返回</button>
-              <label class="layui-form-label" style="margin-left: 20px;">当前路径：</label>
+              <button id="go-back" class="layui-btn return-btn control-btn">{% translate "返回" %}</button>
+              <label class="layui-form-label" style="margin-left: 20px;">{% translate "当前路径" %}：</label>
               <div class="layui-input-inline">
                 <input type="text" id="current-path" value="/" readonly class="layui-input">
               </div>
-              <button class="layui-btn control-btn action-btn" data-action="createDir">新建目录</button>
+              <button class="layui-btn control-btn action-btn" data-action="createDir" id="createDir" >{% translate "新建目录" %}</button>
               <!--将上传文件按钮设为触发file input的点击事件-->
               <button class="layui-btn layui-btn-normal control-btn upload-file" id="upload"
-                data-action="upload">上传文件</button>
+                data-action="upload">{% translate "上传文件" %}</button>
               <!-- 实现弹出层 -->
-              <button id="refresh" class="layui-btn layui-btn-normal control-btn">刷新</button>
+              <button id="refresh" class="layui-btn layui-btn-normal control-btn">{% translate "刷新" %}</button>
             </div>
             <table class="layui-hide" id="file-table" lay-filter="demo"></table>
             <script type="text/html" id="barDemo">
-              <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue download" lay-event="download">下载</a>
-              <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red delete" lay-event="delete">删除</a>
+              <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue download" lay-event="download">{% translate "下载" %}</a>
+              <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red delete" lay-event="delete">{% translate "删除" %}</a>
             </script>
           </div>
         </fieldset>
@@ -150,6 +150,10 @@
           fetchDirectoryList();
         });
       });
+      // 创建文件夹点击按钮
+      $('#createDir').on('click', function () {
+        layer.msg("在努力做了，请耐心等待", { icon: 5 })
+      });
 
       //手动刷新按钮
       $('#refresh').on('click', function () {
@@ -164,7 +168,7 @@
       function fetchDirectoryList() {
         layer.msg("请求中，请稍等")
         // 显示 loading 效果
-        var loadingIndex = layer.load(3);
+        var loadingIndex = layer.load(2);
         var host_address = "{{ host_address }}";  // 将从 Django context 中传递的主机 ID 保存到变量中
         var currentPath = document.getElementById("current-path").value;  // 获取 HTML 元素中当前保存的路径
 

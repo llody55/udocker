@@ -99,7 +99,7 @@
     <div class="layui-panel right-block">
         <!-- 新增选项卡等功能模块 -->
         <div class="layui-btn-container">
-            <button class="layui-btn hostAdd" lay-event="hostAdd">添加服务器</button>
+            <button class="layui-btn hostAdd" lay-event="hostAdd">{% translate "添加服务器" %}</button>
             <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
                 <i class="layui-icon layui-icon-refresh"></i>
             </button>
@@ -108,8 +108,8 @@
             <table class="layui-hide" id="demo" lay-filter="test"></table>
             <!--  行工具 -->
             <script type="text/html" id="barDemo">
-                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">连接</a>
-                <a class="layui-btn layui-btn-xs" lay-event="more">更多<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">{% translate "连接" %}</a>
+                <a class="layui-btn layui-btn-xs" lay-event="more">{% translate "更多" %}<i class="layui-icon layui-icon-down"></i></a>
             </script>
         </div>
     </div>
@@ -181,7 +181,7 @@
                 
                 // 连接WebSocket
                 var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-                var socketURL = protocol + window.location.host + '/webssh_terminal/' + '?host_address=' + data.host_address;
+                var socketURL = protocol + window.location.host + '/apps/webssh_terminal/' + '?host_address=' + data.host_address;
                 var sock = new WebSocket(socketURL);
                 sock.binaryType = "arraybuffer";  // 必须设置，zmodem才可以使用
 
@@ -237,18 +237,21 @@
                     elem: this //触发事件的 DOM 对象
                     , show: true //外部事件触发即显示
                     , data: [{
-                        title: '文件管理'
+                        title: '文件管理器'
                         , id: 'file'
+                        , templet: '<span>{% translate "文件管理器" %}</span>'
                     },{
                         type: "-",
                     }, {
                         title: '编辑'
                         , id: 'edit'
+                        , templet: '<span>{% translate "编辑" %}</span>'
                     }, {
                         type: "-",
                     }, {
                         title: '删除'
                         , id: 'del'
+                        , templet: '<span style="color: red;">{% translate "删除" %}</span>'
                     }], click: function (menudata) {
                         if (menudata.id === 'edit') {
                             layer.msg('编辑操作，当前行 ID:' + data.host_address);
@@ -259,7 +262,7 @@
                                 anim: 'slideLeft', // 从右往左
                                 area: ['70%', '100%'],
                                 closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
-                                title: "文件管理器",
+                                title: '<span>{% translate "文件管理器" %}</span>',
                                 shade: 0.1,
                                 shift: 2,
                                 shadeClose: false,

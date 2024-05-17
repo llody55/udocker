@@ -94,7 +94,8 @@ layui.use('layer', function(){
         updateLogDisplay();
     });
     // 打开一个 websocket，django也会把sessionid传过去
-    var ws = new WebSocket('ws://' + window.location.host + '/apps/docker_logs/' +  '?containers='+ containers);
+    var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    var ws = new WebSocket(protocol + window.location.host + '/apps/docker_logs/' +  '?containers='+ containers);
 
     // 打开websocket连接，并打开终端
     ws.onopen = function () {
