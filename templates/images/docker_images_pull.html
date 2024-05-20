@@ -4,6 +4,7 @@
     <meta charset="utf-8"/>
     <title>拉取镜像</title>
     <link rel="stylesheet" href="/static/layui/css/layui.css"/>
+    {% load i18n %}
     <style>
         body {
             margin: 10px;
@@ -34,6 +35,10 @@
             line-height: 36px;
             /* 调整行高 */
         }
+        /* 底部内边距样式*/
+        #fixed {
+            padding-bottom: 40px; /* 底部填充，值应大于或等于提交按钮的高度加上一些额外空间 */
+        }
     </style>
 </head>
 <body>
@@ -42,14 +47,14 @@
         <div class="layui-row">
             <div class="layui-col-md12">
                 <fieldset class="layui-elem-field layui-field-title">
-                    <legend>Registries创建</legend>
+                    <legend>拉取镜像</legend>
                 </fieldset>
             </div>
             {% csrf_token %}
             <form class="layui-form layui-form-pane" id="add-form" action="" method="post">
                 <div class="layui-col-md6">
                     <div class="layui-card">
-                        <div class="layui-card-header">拉取镜像</div>
+                        <!-- <div class="layui-card-header">拉取镜像</div> -->
                         <div class="layui-card-body layui-bg-gray">
                             <div class="layui-form-item">
                                 <label class="layui-form-label">仓库地址</label>
@@ -75,7 +80,8 @@
 
                 <!-- 底部按钮 -->
                 <div class="submit-btn-fixed">
-                    <button type="button" class="layui-btn" id="pull-image">拉取镜像</button>
+                    <button type="button" class="layui-btn" id="pull-image">{% translate "提交" %}</button>
+                    <button type="reset" class="layui-btn layui-btn-primary" id="closeBtn">{% translate "关闭" %}</button>
                 </div>
             </form>
         </div>
@@ -145,13 +151,13 @@
                 success: function (result) {
                     if (result.code == '0') {
                         // 关闭 loading 效果
-                        layer.close(loadingIndex);
+                        layer.close(loadingIndex)
                         // 显示拉取镜像开始的消息
-                        layer.msg(result.msg, {time: 3000}, { icon: 6 });
-                        // 开始轮询检查镜像拉取状态
-                        //var taskId = response.task_id; // 从响应中获取任务ID
-                        //console.log("任务ID:"+ taskId)
-                        //checkImagePullStatus(taskId); // 轮询检查状态的函数
+                        layer.msg(result.msg, {time: 2000,icon: 6 },function () {
+                            var index = parent.layer.getFrameIndex(window.name) //获取当前窗口的索引
+                            parent.layer.close(index) //关闭窗口
+                            parent.location.reload() //刷新父页面
+                        });
                     } else {
                         // 关闭 loading 效果
                         layer.close(loadingIndex);
@@ -160,31 +166,18 @@
                     }
                 },
                 error: function () {
-                    layer.msg('服务器请求失败');
+                    // 关闭 loading 效果
+                    layer.close(loadingIndex)
+                    layer.msg('服务器接口异常！', { icon: 5 })
                 }
             })
         });
-        // 轮询检查镜像拉取状态的函数 --未实现
-        function checkImagePullStatus(taskId) {
-            setTimeout(function () {
-                $.ajax({
-                    type: 'GET',
-                    url: '#', // 替换为后端检查状态的API
-                    success: function (response) {
-                        if (response.status === 'finished') {
-                            // 显示拉取成功或失败的消息
-                            layer.msg(response.message, {time: 3000});
-                        } else {
-                            // 如果状态不是 'finished'，继续轮询
-                            checkImagePullStatus(taskId);
-                        }
-                    },
-                    error: function () {
-                        layer.msg('检查镜像状态时服务器请求失败');
-                    }
-                });
-            }, 3000); // 设定轮询间隔为3秒
-        }
+
+        // 关闭窗口
+        $('#closeBtn').click(function () {
+            var index = parent.layer.getFrameIndex(window.name) //获取当前窗口的name
+            parent.layer.close(index) //关闭窗口
+        });
     })
 </script>
 </body>

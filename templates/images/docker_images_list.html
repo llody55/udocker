@@ -196,7 +196,7 @@
                 layer.msg("臣尽力在做了，莫慌",{icon:5})
             }
         });
-
+        
         //监听自定义头工具栏事件
         table.on('toolbar(test)', function (obj) {
             var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
@@ -206,14 +206,18 @@
                         type: 2,
                         offset: 'r',
                         anim: 'slideLeft', // 从右往左
+                        closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
                         area: ['600px', '100%'],
                         closeBtn: false,
                         title: "拉取镜像",
                         shift: 2,
                         shade: 0.2,
-                        shadeClose: true,
+                        shadeClose: false,
                         id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
-                        content: '{% url "docker_images_pull" %}'
+                        content: '{% url "docker_images_pull" %}',
+                        move: false, // 禁止拖动
+                        resize: false, // 禁止调整大小
+                        skin: 'white-background' // 应用自定义的背景颜色类
                     })
                     //window.location.href = '{% url "docker_images_pull" %}'
                     break;
