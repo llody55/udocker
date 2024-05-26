@@ -20,7 +20,7 @@ jobs:
       - name: 设置Python版本
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9.6'
+          python-version: '3.9.13'
 
       - name: 安装依赖
         run: |
