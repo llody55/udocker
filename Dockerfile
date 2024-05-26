@@ -15,9 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && \
-    python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
-
+#RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install --no-cache-dir -r requirements.txt && python -m pip install Pillow 
 # 第二阶段
 FROM --platform=$TARGETPLATFORM python:3.9.10-slim
 ARG TARGETPLATFORM
