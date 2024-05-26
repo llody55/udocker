@@ -13,6 +13,7 @@ import humanize
 import ipaddress
 import traceback
 import concurrent.futures
+from udockers.settings import VERSION_STR
 from dateutil import parser
 from django.http import HttpResponse,JsonResponse, QueryDict,FileResponse
 from django.shortcuts import render, redirect
