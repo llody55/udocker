@@ -6,7 +6,7 @@
 <div align="center">
 <a href="https://github.com/llody55/udocker" target="_blank"><img alt="Github stars" src="https://img.shields.io/github/stars/llody55/udocker.svg" title="给个start吧，求求了"></a>
 <img src="https://camo.githubusercontent.com/f8defc7b1662a63895c0de6aa7820bd10b5de2d725b307d76cae5e5c96b9e15c/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f646f636b65722d3132333435363f6c6f676f3d646f636b6572266c6f676f436f6c6f723d666666266c6162656c436f6c6f723d316337616564"alt="docker" data-canonical-src="https://img.shields.io/badge/docker-123456?logo=docker&logoColor=fff&labelColor=1c7aed">
-<img id="wechatIcon" alt="微信公众号" src="https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-%E8%BF%90%E7%BB%B4%E5%AE%9E%E8%B7%B5%E5%BD%95-brightgreen"style="max-width: 100%;" title="给个关注吧，求求了">
+<img id="wechatIcon" alt="微信公众号" src="https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-%E8%BF%90%E7%BB%B4%E5%AE%9E%E8%B7%B5%E5%BD%95-brightgreen" style="max-width: 100%;" title="给个关注吧，求求了">
 </div>
 
 > **声明:** 此项目当前为base版，请勿暴露于公网环境，可能引发安全问题
