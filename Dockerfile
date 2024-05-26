@@ -7,16 +7,24 @@ ARG TARGETARCH
 ENV PIP_CACHE_DIR=/app/.cache \
     LANG=en_GB.UTF-8 \
     DOCKER_HOST=unix:///var/run/docker.sock
+
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
     libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY requirements.txt .
-#RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
+
+# 安装平台特定的依赖
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+      pip install --no-cache-dir pysqlite3-binary==0.5.2.post3; \
+    fi
+
 RUN pip install --no-cache-dir -r requirements.txt && python -m pip install Pillow 
+
 # 第二阶段
 FROM --platform=$TARGETPLATFORM python:3.9.10-slim
 ARG TARGETPLATFORM
