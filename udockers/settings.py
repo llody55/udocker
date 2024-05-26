@@ -29,9 +29,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['https://add.llody.top']
+#CSRF_TRUSTED_ORIGINS = ['https://add.llody.top']
 
 # Application definition
+VERSION = (1, 1, 0)
+
+VERSION_STR = '.'.join(map(str, VERSION))
  
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -80,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'udockers.contexts.version',
             ],
         },
     },
@@ -94,7 +98,7 @@ WSGI_APPLICATION = 'udockers.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR,'db', 'db.sqlite3'),
     }
 }
 
