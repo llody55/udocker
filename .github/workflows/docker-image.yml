@@ -35,8 +35,8 @@ jobs:
         run: |
           python manage.py test
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
       - name: 登录dockerhub
         uses: docker/login-action@v3
@@ -51,7 +51,7 @@ jobs:
           tags: |
             llody/udocker:latest
             llody/udocker:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
   release:
     needs: build
