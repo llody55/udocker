@@ -50,7 +50,7 @@ jobs:
           push: true
           tags: |
             llody/udocker:latest
-            llody/udocker:${{ github.ref_name }}
+            llody/udocker:v1.1.0
           platforms: linux/amd64
 
   release:
