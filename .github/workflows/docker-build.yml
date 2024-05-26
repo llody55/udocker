@@ -2,8 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    tags:
-      - 'v1.[1-9]+.[0-9]+*'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: write
