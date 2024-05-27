@@ -34,7 +34,7 @@ COPY . /app
 
 # 初始化数据库
 RUN python manage.py migrate
-RUN echo "from django.contrib.auth.models import User; User.objects.create_superuser('llody', '745719408@qq.com', '1qaz2wsx')" | python manage.py shell
+RUN echo "from django.contrib.auth.models import apps; apps.objects.create_superuser('llody', '745719408@qq.com', '1qaz2wsx')" | python manage.py shell
 
 RUN chmod +x start.sh
 
