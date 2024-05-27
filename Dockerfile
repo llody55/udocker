@@ -17,6 +17,7 @@ WORKDIR /app
 COPY requirements.txt .
 #RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install --no-cache-dir -r requirements.txt && python -m pip install Pillow 
+
 # 第二阶段
 FROM --platform=$TARGETPLATFORM python:3.9.10-slim
 ARG TARGETPLATFORM
@@ -30,6 +31,10 @@ COPY --from=builder /usr/local/lib/python3.9 /usr/local/lib/python3.9
 WORKDIR /app
 
 COPY . /app
+
+# 初始化数据库
+RUN python manage.py migrate
+RUN echo "from django.contrib.auth.models import User; User.objects.create_superuser('llody', '745719408@qq.com', '1qaz2wsx')" | python manage.py shell
 
 RUN chmod +x start.sh
 
