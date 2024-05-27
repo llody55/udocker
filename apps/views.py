@@ -33,72 +33,80 @@ from loguru import logger
 from apps import docker_mod,host_mod
 from docker.errors import DockerException, TLSParameterError,APIError, ContainerError, ImageNotFound,NotFound
 from django.utils.translation import gettext_lazy as _
+import subprocess
 
 @login_required
 def index(request):
     if request.method == "GET":
-        client = docker.from_env()
-        #docker客户端版本信息
-        client_version = client.version()['Version']
-        # 服务端版本
-        server_version = client.info()['ServerVersion']
-        # Docker目录
-        docker_dir = client.info()['DockerRootDir']
-        # docker_compose 组件版本
-        # docker_compose_version = subprocess.check_output(['docker-compose', '-v']).decode().strip()
-        # print("docker_compose 组件版本",docker_compose_version)
-        #docker平台
-        Platform = client.version()['Platform']['Name']
-        # 提取组件版本信息
-        data = []
-        for i in client.version()['Components']:
-            components_name = i['Name']
-            components_version = i['Version']
-            components = "%s-%s" %(components_name,components_version)
-            dat = {"components":components}
-            data.append(dat)
-        #许可证
-        Product_License = client.version()['Platform']['Name']
-        #go版本
-        go_version = client.version()['GoVersion']
-        #CPU核数
-        CPU_info = client.info()['NCPU']
-        #内存总数
-        mem_total = client.info()['MemTotal']
-        #格式化内存
-        total_mem = round(mem_total / (1024*1024*1024), 2)
-        # 主机hostname
-        hostname = client.info()['Name']
+        try:
+            app = subprocess.run(["curl --unix-socket /var/run/docker.sock http://localhost/version"], shell=True,check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("测试套接字",app.stdout.decode('utf-8'))
+            #容器管理模块API
+            success, client = docker_mod.connect_to_docker()
+            if success:
+                #docker客户端版本信息
+                client_version = client.version()['Version']
+                # 服务端版本
+                server_version = client.info()['ServerVersion']
+                # Docker目录
+                docker_dir = client.info()['DockerRootDir']
+                # docker_compose 组件版本
+                # docker_compose_version = subprocess.check_output(['docker-compose', '-v']).decode().strip()
+                # print("docker_compose 组件版本",docker_compose_version)
+                #docker平台
+                Platform = client.version()['Platform']['Name']
+                # 提取组件版本信息
+                data = []
+                for i in client.version()['Components']:
+                    components_name = i['Name']
+                    components_version = i['Version']
+                    components = "%s-%s" %(components_name,components_version)
+                    dat = {"components":components}
+                    data.append(dat)
+                #许可证
+                Product_License = client.version()['Platform']['Name']
+                #go版本
+                go_version = client.version()['GoVersion']
+                #CPU核数
+                CPU_info = client.info()['NCPU']
+                #内存总数
+                mem_total = client.info()['MemTotal']
+                #格式化内存
+                total_mem = round(mem_total / (1024*1024*1024), 2)
+                # 主机hostname
+                hostname = client.info()['Name']
 
-        # CPU 架构和内核版本
-        #CPU架构
-        CPU_arch = client.info()['Architecture']
-        #系统类型
-        OS_type = client.info()['OSType']
-        #内核版本
-        kernel_version = client.info()['KernelVersion']
-        #系统版本
-        OS_system = client.info()['OperatingSystem']
-                    
-        # 系统时间
-        system_time = client.info()['SystemTime']
-        #总容器
-        Containers_total = client.info()['Containers']
-        #当前运行中的容器
-        Containers_Running = client.info()['ContainersRunning']
-        #格式化总容器于运行容器
-        Containers = "%s/%s" %(Containers_Running,Containers_total)
-        #暂停的容器
-        Containers_Paused = client.info()['ContainersPaused']
-        #停止的容器
-        Containers_Stopped = client.info()['ContainersStopped']
-        #镜像总数
-        images = client.info()['Images']
-        connect={"client_version":client_version,"server_version":server_version,"docker_dir":docker_dir,"data":data,"Product_License":Product_License,"go_version":go_version,"Platform":Platform,
-                        "CPU_arch":CPU_arch,"OS_type":OS_type,"kernel_version":kernel_version,"OS_system":OS_system,"hostname":hostname,"system_time":system_time,
-                        "Containers":Containers,"images":images,"CPU_info":CPU_info,"total_mem":total_mem}
-    return render(request, 'docker_info.html',{"connect":connect})
-
+                # CPU 架构和内核版本
+                #CPU架构
+                CPU_arch = client.info()['Architecture']
+                #系统类型
+                OS_type = client.info()['OSType']
+                #内核版本
+                kernel_version = client.info()['KernelVersion']
+                #系统版本
+                OS_system = client.info()['OperatingSystem']
+                            
+                # 系统时间
+                system_time = client.info()['SystemTime']
+                #总容器
+                Containers_total = client.info()['Containers']
+                #当前运行中的容器
+                Containers_Running = client.info()['ContainersRunning']
+                #格式化总容器于运行容器
+                Containers = "%s/%s" %(Containers_Running,Containers_total)
+                #暂停的容器
+                Containers_Paused = client.info()['ContainersPaused']
+                #停止的容器
+                Containers_Stopped = client.info()['ContainersStopped']
+                #镜像总数
+                images = client.info()['Images']
+                connect={"client_version":client_version,"server_version":server_version,"docker_dir":docker_dir,"data":data,"Product_License":Product_License,"go_version":go_version,"Platform":Platform,
+                                "CPU_arch":CPU_arch,"OS_type":OS_type,"kernel_version":kernel_version,"OS_system":OS_system,"hostname":hostname,"system_time":system_time,
+                                "Containers":Containers,"images":images,"CPU_info":CPU_info,"total_mem":total_mem}
+                return render(request, 'docker_info.html',{"connect":connect})
+        except DeprecationWarning as e:
+            logger.error(e)
+        
 # 登录
 @csrf_exempt
 def user_login(request):
