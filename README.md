@@ -31,7 +31,7 @@
 
 ## 安装与部署(推荐)
 ```
-docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:v1.1-base
+docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:latest
 ```
 > 默认账户：llody 密码：1qaz2wsx
 ## 预览

@@ -32,7 +32,7 @@ ALLOWED_HOSTS = ['*']
 #CSRF_TRUSTED_ORIGINS = ['https://add.llody.top']
 
 # Application definition
-VERSION = (1, 1, 0)
+VERSION = (1, 1, 1)
 
 VERSION_STR = '.'.join(map(str, VERSION))
  

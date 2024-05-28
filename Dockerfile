@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
-#RUN pip install --no-cache-dir -r requirements.txt && python -m pip install Pillow 
+#RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install --no-cache-dir -r requirements.txt && python -m pip install Pillow 
 
 # 第二阶段
 FROM --platform=$TARGETPLATFORM python:3.9.10-slim
@@ -33,9 +33,12 @@ WORKDIR /app
 
 COPY . /app
 
+RUN mkdir /app/db
+
 # 初始化数据库
 RUN python manage.py migrate
 RUN echo "from apps.models import CustomUser; CustomUser.objects.create_superuser('745719408@qq.com','llody', '1qaz2wsx')" | python manage.py shell
+RUN echo "from apps.models import Registries; registry = Registries(registries_name='dockerhub', registries_url='docker.io', registries_auth=False, registries_remarks='DockerHub'); registry.set_password('your_password'); registry.save()" | python manage.py shell
 
 RUN chmod +x start.sh
 

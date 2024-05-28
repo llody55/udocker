@@ -39,8 +39,6 @@ import subprocess
 def index(request):
     if request.method == "GET":
         try:
-            app = subprocess.run(["curl --unix-socket /var/run/docker.sock http://localhost/version"], shell=True,check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("测试套接字",app.stdout.decode('utf-8'))
             #容器管理模块API
             success, client = docker_mod.connect_to_docker()
             if success:
