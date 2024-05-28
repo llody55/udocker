@@ -16,7 +16,7 @@
 > 只需要：1核1G即可，暂时只有X86版本
 
 ## 快速了解
-> udocker 是一个轻量级且好用的docker管理面板，并且自带一个webssh终端管理工具,可以很方便的管理服务器和上传下载文件。
+> udocker 是一个轻量且好用的docker管理面板，并且自带一个webssh终端管理工具,可以很方便的管理服务器和上传下载文件。
 
 目前支持的功能有：
 
@@ -30,10 +30,19 @@
    - Linux文件管理器
 
 ## 安装与部署(推荐)
-```
+### 一键部署版
+```bash
 docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:latest
 ```
+### 数据库持久化版
+```bash
+mkdir /opt/udocke_db
+docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  llody/udocker:latest
+```
+### 账户密码
+
 > 默认账户：llody 密码：1qaz2wsx
+
 ## 预览
 ![1](./docs/images/1.png)
 ![2](./docs/images/2.png)
