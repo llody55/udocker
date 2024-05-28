@@ -78,8 +78,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
           body: |
             - **新版本发布**: v1.1.1
             - **更新内容**: 
