@@ -39,23 +39,41 @@ docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock
 mkdir /opt/udocke_db
 docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  llody/udocker:latest
 ```
+### 华为云同步镜像(国内推荐)
+```bash
+mkdir /opt/udocke_db
+docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  swr.cn-southwest-2.myhuaweicloud.com/llody/udocker:latest 
+```
 ### 账户密码
 
 > 默认账户：llody 密码：1qaz2wsx
 
 ## 预览
+### 系统信息
 ![1](./docs/images/1.png)
+### 镜像管理
 ![2](./docs/images/2.png)
+### 容器管理
 ![3](./docs/images/3.jpg)
+### 网络管理
 ![4](./docs/images/4.jpg)
+### 存储管理
 ![5](./docs/images/5.jpg)
+### 事件中心
 ![6](./docs/images/6.jpg)
+### 镜像仓库管理
 ![7](./docs/images/7.jpg)
+### 创建容器
 ![8](./docs/images/8.png)
+### 创建网络
 ![9](./docs/images/9.jpg)
+### 创建挂载信息
 ![10](./docs/images/10.jpg)
+### 主机终端管理
 ![11](./docs/images/11.png)
+### Linux文件管理器
 ![12](./docs/images/12.jpg)
+### 文件批量上传
 ![13](./docs/images/13.jpg)
 
 
