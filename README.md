@@ -25,6 +25,7 @@
    - 网络管理
    - 存储管理
    - 事件中心
+   - 镜像仓库管理（自带一个dockerhub的代理：docker.llody.cn）
    - 多语言(中英切换)
    - webssh终端
    - Linux文件管理器
@@ -63,7 +64,7 @@ docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock
 ![6](./docs/images/6.jpg)
 ### 镜像仓库管理
 ![7](./docs/images/7.jpg)
-### 创建容器
+### 创建容
 ![8](./docs/images/8.png)
 ### 创建网络
 ![9](./docs/images/9.jpg)
@@ -134,6 +135,13 @@ server {
 
 ## 问题反馈
  - Issues
+
+## 后续计划
+  - docker-compose （支持）
+  - 镜像拉取（优化）
+  - 翻译（完善）
+  - 优化BUG
+  - 还想要什么，欢迎补充。
 
 ## Star趋势
 [![Stargazers over time](https://starchart.cc/llody55/udocker.svg)](https://github.com/llody55/udocker)

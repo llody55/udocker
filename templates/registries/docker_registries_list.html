@@ -102,6 +102,7 @@
                 , { field: 'registries_name', title: '名称', sort: true }
                 , { field: 'registries_auth', title: '认证', sort: true,templet: authFormat} //hide:true 隐藏某一列的信息
                 , { field: 'registries_url', title: '仓库地址', sort: true }
+                , { field: 'registries_remarks', title: '备注' +'<i class="layui-icon layui-icon-tips layui-font-14" title="点击名称修改备注信息" style="margin-left: 5px;"></i>', fieldTitle: '备注信息', hide: 0, sort: true, edit: 'text' ,templet: remarksFormat}
                 , { field: 'registries_createdat', title: '创建时间', sort: true }
                 , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 250, align: "center" }
             ]],
@@ -115,6 +116,15 @@
                 return '<span class="layui-badge-dot layui-bg-green"></span>&emsp;<span class="layui-font-green">开启认证</span>'
             } else {
                 return '<span class="layui-badge-dot status-disabled"></span>&emsp;<span class="layui-font-red">匿名</span>'
+            }
+        }
+        //备注格式化
+        function remarksFormat(d) {
+            if (d.registries_remarks) {
+                //给返回值加个样式
+                return '<span class="layui-font-green">'+d.registries_remarks+'</span>'
+            } else {
+                return '-'
             }
         }
 
@@ -198,6 +208,40 @@
                     curr: 1  //重新从第 1 页开始
                 }
             })
+        });
+
+        // 单元格编辑事件,修改备注信息
+        table.on('edit(test)', function (obj) {
+            var field = obj.field; // 得到字段
+            var value = obj.value; // 得到修改后的值
+            var data = obj.data; // 得到所在行所有键值
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            // 值的校验
+            if (field === 'registries_remarks') {
+                $.ajax({
+                    type: "POST",
+                    url: '{% url "docker_registries_rename_api" %}',
+                    data: {
+                        name: data.registries_name,
+                        id: data.registries_remarks,
+                    },
+                    headers: { 'X-CSRFToken': csrf_token },
+                    success: function (result) {
+                        if (result.code == '0') {
+                            layer.msg(result.msg, { icon: 6, time: 500 }, function () {
+                                // 重新加载页面
+                                window.location.reload()
+                            });
+                        } else {
+                            layer.msg(result.msg, { icon: 5 })
+                            return obj.reedit();
+                        }
+                    },
+                    error: function () {
+                        layer.msg("服务器接口异常！", { icon: 5 })
+                    }
+                })
+            }
         });
 
 

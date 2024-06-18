@@ -46,6 +46,7 @@ urlpatterns = [
     re_path("docker_registries_info/",views.docker_registries_info,name="docker_registries_info"), # 镜像仓库页面
     re_path("docker_registries_api/",views.docker_registries_api,name="docker_registries_api"), # 镜像仓库API
     re_path("docker_registries_create/",views.docker_registries_create,name="docker_registries_create"), # 镜像仓库创建页
+    re_path("docker_registries_rename_api/",views.docker_registries_rename_api,name="docker_registries_rename_api"), # 备注更新接口
 
     re_path("webssh_info/",views.webssh_info,name="webssh_info"),  # 主机终端首页
     re_path("webssh_add_info/",views.webssh_add_info,name="webssh_add_info"),

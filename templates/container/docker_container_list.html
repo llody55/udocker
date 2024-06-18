@@ -654,8 +654,11 @@
                 if (/^[a-z0-9][a-z0-9_-]{0,253}[a-z0-9]$/.test(obj.value)) {
                     $.ajax({
                         type: "POST",
-                        url: '{% url "docker_container_rename_api" %}?name=' + data.name + '&id=' + data.id,
-                        data: data,
+                        url: '{% url "docker_container_rename_api" %}',
+                        data: {
+                            name: data.name,
+                            id: data.id,
+                        },
                         headers: { 'X-CSRFToken': csrf_token },
                         success: function (result) {
                             if (result.code == '0') {

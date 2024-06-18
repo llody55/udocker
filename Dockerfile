@@ -38,7 +38,8 @@ RUN mkdir /app/db
 # 初始化数据库
 RUN python manage.py migrate
 RUN echo "from apps.models import CustomUser; CustomUser.objects.create_superuser('745719408@qq.com','llody', '1qaz2wsx')" | python manage.py shell
-RUN echo "from apps.models import Registries; registry = Registries(registries_name='dockerhub', registries_url='docker.io', registries_auth=False, registries_remarks='DockerHub'); registry.set_password('your_password'); registry.save()" | python manage.py shell
+RUN echo "from apps.models import Registries; registry = Registries(registries_name='dockerhub', registries_url='docker.io', registries_auth=False, registries_remarks='DockerHub'); registry.save()" | python manage.py shell
+RUN echo "from apps.models import Registries; registry = Registries(registries_name='llody_proxy', registries_url='docker.llody.cn', registries_auth=False, registries_remarks='CF agent for Docker'); registry.save()" | python manage.py shell
 
 RUN chmod +x start.sh
 

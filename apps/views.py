@@ -702,33 +702,33 @@ def docker_container_delete_api(request):
 @csrf_exempt
 @login_required
 def docker_container_rename_api(request):
-    search_key = request.GET.get("search_key")
-    name = request.GET.get("name")
-    container_id = request.GET.get("id")
-    print("容器名称:",name)
-    try:
-        success, client = docker_mod.connect_to_docker()
-        if success:
-            containers = client.containers.list(all=True)
-            for container in containers:
-                if name == container.name:
-                    code1 = 1
-                    msg_code = "名称已存在"
-                    break
-            else:
-                code1 = 0
-                msg_code = "重命名成功"
-                # 重命名容器
-                container1 = client.containers.get(container_id)
-                container1.rename(name)
-        code = code1
-        msg = msg_code
-    except Exception as e:
-        code = code1
-        msg = msg_code
-        print("报错信息:",e)
-    result = {'code': code, 'msg': msg}
-    return JsonResponse(result)
+    if request.method == 'POST':
+        name = request.POST.get("name")
+        container_id = request.POST.get("id")
+        print("容器名称:",name)
+        try:
+            success, client = docker_mod.connect_to_docker()
+            if success:
+                containers = client.containers.list(all=True)
+                for container in containers:
+                    if name == container.name:
+                        code1 = 1
+                        msg_code = "名称已存在"
+                        break
+                else:
+                    code1 = 0
+                    msg_code = "重命名成功"
+                    # 重命名容器
+                    container1 = client.containers.get(container_id)
+                    container1.rename(name)
+            code = code1
+            msg = msg_code
+        except Exception as e:
+            code = code1
+            msg = msg_code
+            print("报错信息:",e)
+        result = {'code': code, 'msg': msg}
+        return JsonResponse(result)
 
 # 容器更新重启策略接口
 @csrf_exempt
@@ -795,7 +795,6 @@ def docker_container_batchrestart_api(request):
             msg = f"容器重启失败，错误：{str(e)}"
         result = {'code': code, 'msg': msg}
         return JsonResponse(result)
-
 
 
 @xframe_options_exempt
@@ -1551,8 +1550,9 @@ def docker_registries_api(request):
                 registries_name = auth.registries_name
                 registries_auth = auth.registries_auth
                 registries_url = auth.registries_url
+                registries_remarks = auth.registries_remarks
                 registries_createdat = docker_mod.timestamp_format(auth.registries_createdat)
-                dat = {"registries_name":registries_name,"registries_auth":registries_auth,"registries_url":registries_url,"registries_createdat":registries_createdat}
+                dat = {"registries_name":registries_name,"registries_auth":registries_auth,"registries_url":registries_url,"registries_remarks":registries_remarks,"registries_createdat":registries_createdat}
                 if search_key:
                     if search_key in registries_name:
                         data.append(dat)
@@ -1633,6 +1633,29 @@ def docker_registries_api(request):
 def docker_registries_create(request):
     return render(request, 'registries/docker_registries_create.html')
 
+# 镜像仓库备注修改
+@csrf_exempt
+@login_required
+def docker_registries_rename_api(request):
+    if request.method == 'POST':
+        name = request.POST.get("name")
+        registries_remarks = request.POST.get("id")
+        print("仓库备注:",name)
+        try:
+            existing_registry = Registries.objects.filter(registries_name=name).first()
+            if existing_registry:
+                existing_registry.registries_remarks = registries_remarks
+                existing_registry.save()
+                code = 0
+                msg = "备注更新成功"
+            else:
+                return JsonResponse({'msg': "新增失败，修改源不存在", "code": 1})
+        except Exception as e:
+            code = 1
+            msg = f"报错了：{e}"
+            print("报错信息:",e)
+        result = {'code': code, 'msg': msg}
+        return JsonResponse(result)
 
 # 主机列表方法
 @login_required
