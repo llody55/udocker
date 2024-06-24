@@ -55,7 +55,7 @@
                             <div class="layui-card-body">
                                 <div class="layui-icon layui-icon-template-1"></div>
                                 <div class="layui-text">
-                                    <div class="layui-word-aux">CPU {{connect.CPU_info}}{% translate "核" %}</div>
+                                    <div class="layui-word-aux">CPU {{ connect.cpu_usage}} % / {{connect.CPU_info}}{% translate "核" %}</div>
                                     <div class="layui-word-main"></div>
                                 </div>
                             </div>
@@ -66,7 +66,7 @@
                             <div class="layui-card-body">
                                 <div class="layui-icon layui-icon-template-1"></div>
                                 <div class="layui-text">
-                                    <div class="layui-word-aux">{% translate "内存" %}  {{connect.total_mem}}G</div>
+                                    <div class="layui-word-aux">{% translate "内存" %} {{ connect.memory_usage}} % /  {{connect.total_mem}}G</div>
                                     <div class="layui-word-main"></div>
                                 </div>
                             </div>
@@ -125,8 +125,8 @@
                 <tr>
                   <td>{% translate "联系方式" %}</td>
                   <td>
-                    <img alt="QQ" src="https://img.shields.io/badge/QQ-745719408-blue">&nbsp;&nbsp;&nbsp;&nbsp;
                     <img id="wechatIcon" alt="微信公众号" src="https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-%E8%BF%90%E7%BB%B4%E5%AE%9E%E8%B7%B5%E5%BD%95-brightgreen" style="max-width: 100%;" title="给个关注吧，求求了">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img alt="QQ" src="https://img.shields.io/badge/QQ-745719408-blue">&nbsp;&nbsp;&nbsp;&nbsp;
                     <a alt=="给个关注吧，求求了" href="#"><img alt="欢迎关注" src="https://img.shields.io/badge/Udocker-%E6%96%87%E6%A1%A3-brightblue" title="文档中心"></a>
                     <img id="largeImage" src="https://static.llody.top/images/%E8%BF%90%E7%BB%B4%E5%AE%9E%E8%B7%B5%E5%BD%95.jpg" style="display: none; position: absolute; top: XXpx; left: XXpx;" alt="大图片">
                   </td>
