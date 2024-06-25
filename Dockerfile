@@ -13,9 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
     libsqlite3-dev \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
+RUN python -m pip install --upgrade pip
 #RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && python -m pip install Pillow -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install --no-cache-dir -r requirements.txt 
 
@@ -25,7 +30,7 @@ ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 ARG TARGETARCH
 
-MAINTAINER llody55
+LABEL maintainer="llody55"
 
 COPY --from=builder /usr/local/lib/python3.9 /usr/local/lib/python3.9
 
