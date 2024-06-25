@@ -1,3 +1,4 @@
+import psutil
 import docker
 from docker.errors import DockerException, TLSParameterError,APIError
 from docker.tls import TLSConfig
@@ -73,3 +74,16 @@ def timestamp_format(timestamp):
     c = timestamp + timedelta(hours=8)
     t = date.strftime(c, '%Y-%m-%d %H:%M:%S')
     return t
+
+def get_cpu_usage():
+    return psutil.cpu_percent(interval=1)
+
+def get_memory_usage():
+    total_memory = psutil.virtual_memory().total
+    used_memory = psutil.virtual_memory().used
+    return total_memory, used_memory
+
+def get_disk_usage():
+    total_disk_space = psutil.disk_usage('/').total
+    used_disk_space = psutil.disk_usage('/').used
+    return total_disk_space, total_disk_space - used_disk_space

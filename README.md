@@ -33,17 +33,17 @@
 ## 安装与部署(推荐)
 ### 一键部署版
 ```bash
-docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:latest
+docker run --privileged -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock  llody/udocker:latest
 ```
 ### 数据库持久化版
 ```bash
 mkdir /opt/udocke_db
-docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  llody/udocker:latest
+docker run --privileged -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  llody/udocker:latest
 ```
 ### 华为云同步镜像(国内推荐)
 ```bash
 mkdir /opt/udocke_db
-docker run -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  swr.cn-southwest-2.myhuaweicloud.com/llody/udocker:latest 
+docker run --privileged -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  swr.cn-southwest-2.myhuaweicloud.com/llody/udocker:latest 
 ```
 ### 账户密码
 

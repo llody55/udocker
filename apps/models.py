@@ -54,7 +54,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False,verbose_name='账户状态')
     is_active = models.BooleanField(default=True,verbose_name='激活状态')
     created_at = models.DateTimeField(default=timezone.now, verbose_name='创建时间')
-    avatar = models.ImageField(upload_to='images/avatars/%Y/%m',default="images/avatars/default.jpg", null=True, blank=True, verbose_name='头像')  # 设置用户头像存储在images/avatars目录下，按照年%Y月%m区分
+    #avatar = models.ImageField(upload_to='images/avatars/%Y/%m',default="images/avatars/default.jpg", null=True, blank=True, verbose_name='头像')  # 设置用户头像存储在images/avatars目录下，按照年%Y月%m区分
     gender = models.CharField(max_length=1, choices=(('M', 'Male'), ('F', 'Female'), ('O', 'Other')), blank=True, verbose_name='性别')
     tags = models.CharField(max_length=100, blank=True, verbose_name='标签')
     roles = models.ManyToManyField(Role)

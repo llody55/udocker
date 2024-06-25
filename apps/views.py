@@ -15,6 +15,7 @@ import traceback
 import concurrent.futures
 from udockers.settings import VERSION_STR
 from dateutil import parser
+from concurrent.futures import ThreadPoolExecutor
 from django.http import HttpResponse,JsonResponse, QueryDict,FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login,logout 
@@ -71,6 +72,13 @@ def index(request):
                 mem_total = client.info()['MemTotal']
                 #格式化内存
                 total_mem = round(mem_total / (1024*1024*1024), 2)
+
+                # 获取主机资源信息
+                cpu_usage = docker_mod.get_cpu_usage()
+                total_memory, used_memory = docker_mod.get_memory_usage()
+                memory_usage = round((used_memory / total_memory) * 100, 2)
+                #print(f"CPU使用率：{cpu_usage},内存使用率:{memory_usage}")
+
                 # 主机hostname
                 hostname = client.info()['Name']
 
@@ -100,7 +108,7 @@ def index(request):
                 images = client.info()['Images']
                 connect={"client_version":client_version,"server_version":server_version,"docker_dir":docker_dir,"data":data,"Product_License":Product_License,"go_version":go_version,"Platform":Platform,
                                 "CPU_arch":CPU_arch,"OS_type":OS_type,"kernel_version":kernel_version,"OS_system":OS_system,"hostname":hostname,"system_time":system_time,
-                                "Containers":Containers,"images":images,"CPU_info":CPU_info,"total_mem":total_mem}
+                                "Containers":Containers,"images":images,"CPU_info":CPU_info,"cpu_usage":cpu_usage,"total_mem":total_mem,"memory_usage":memory_usage}
                 return render(request, 'docker_info.html',{"connect":connect})
         except DeprecationWarning as e:
             logger.error(e)
@@ -834,30 +842,34 @@ def docker_images_api(request):
             if success:
                 images = client.images.list()
                 containers = client.containers.list(all=True)
-                for image in images:
+                # 获取所有容器的镜像ID
+                container_image_ids = {container.image.id for container in containers}
+                def process_image(image):
                     image_id = image.id
-                    image_tag = image.tags
-                    # 获取镜像大小（以字节为单位），并将其转换为最接近的二进制单位
+                    image_tags = image.tags
                     image_size = humanize.naturalsize(image.attrs['Size'], binary=True)
-                    # 获取镜像创建时间
                     time_str = image.attrs['Created']
-                    #python 3.7的datetime.strptime方法不支持直接解析纳秒部分
-                    #您可以使用第三方库 dateutil 中的 parse 方法解析ISO 8601格式的时间戳，它可以处理各种不同的时间格式,如：时间戳格式为ISO 8601格式，包含纳秒部分
                     time_obj = parser.isoparse(time_str)
                     image_create_time = time_obj.strftime('%Y-%m-%d %H:%M:%S')
-                    # 初始设置镜像未被占用
-                    image_in_use = any(image_id == container.image.id for container in containers)
-                    # 此处循环便利tag是为了解决同一镜像打了不同的tag的情况本质上是同一个镜像，但是tag不一样
-                    for tag in image_tag:
+                    image_in_use = image_id in container_image_ids
 
-                        dat = {"image_id":image_id,"image_tag":tag,"image_size":image_size,"image_create_time":image_create_time,"image_in_use":image_in_use}
-                        # 根据查询关键字返回数据
+                    for tag in image_tags:
+                        dat = {
+                            "image_id": image_id,
+                            "image_tag": tag,
+                            "image_size": image_size,
+                            "image_create_time": image_create_time,
+                            "image_in_use": image_in_use
+                        }
                         if search_key:
-                            # any 使用模糊匹配搜索, in 使用完全匹配搜索
-                            if any(search_key.lower() in tag.lower() for tag in image_tag):
+                            if search_key.lower() in tag.lower():
                                 data.append(dat)
                         else:
                             data.append(dat)
+                
+                # 使用线程池并行处理镜像
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    executor.map(process_image, images)
                 
             code = 0
             msg = "查询成功."
