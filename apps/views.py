@@ -16,6 +16,7 @@ import concurrent.futures
 from udockers.settings import VERSION_STR
 from dateutil import parser
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from django.http import HttpResponse,JsonResponse, QueryDict,FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login,logout 
@@ -108,6 +109,7 @@ def index(request):
                 images = client.info()['Images']
                 connect={"client_version":client_version,"server_version":server_version,"docker_dir":docker_dir,"data":data,"Product_License":Product_License,"go_version":go_version,"Platform":Platform,
                                 "CPU_arch":CPU_arch,"OS_type":OS_type,"kernel_version":kernel_version,"OS_system":OS_system,"hostname":hostname,"system_time":system_time,
+                                "Containers":Containers,"images":images,"CPU_info":CPU_info,"cpu_usage":cpu_usage,"total_mem":total_mem,"memory_usage":memory_usage}
                                 "Containers":Containers,"images":images,"CPU_info":CPU_info,"cpu_usage":cpu_usage,"total_mem":total_mem,"memory_usage":memory_usage}
                 return render(request, 'docker_info.html',{"connect":connect})
         except DeprecationWarning as e:
@@ -847,6 +849,7 @@ def docker_images_api(request):
                 def process_image(image):
                     image_id = image.id
                     image_tags = image.tags
+                    image_tags = image.tags
                     image_size = humanize.naturalsize(image.attrs['Size'], binary=True)
                     time_str = image.attrs['Created']
                     time_obj = parser.isoparse(time_str)
@@ -861,11 +864,26 @@ def docker_images_api(request):
                             "image_create_time": image_create_time,
                             "image_in_use": image_in_use
                         }
+                    image_in_use = image_id in container_image_ids
+
+                    for tag in image_tags:
+                        dat = {
+                            "image_id": image_id,
+                            "image_tag": tag,
+                            "image_size": image_size,
+                            "image_create_time": image_create_time,
+                            "image_in_use": image_in_use
+                        }
                         if search_key:
+                            if search_key.lower() in tag.lower():
                             if search_key.lower() in tag.lower():
                                 data.append(dat)
                         else:
                             data.append(dat)
+                
+                # 使用线程池并行处理镜像
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    executor.map(process_image, images)
                 
                 # 使用线程池并行处理镜像
                 with ThreadPoolExecutor(max_workers=10) as executor:
