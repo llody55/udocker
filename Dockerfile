@@ -7,12 +7,16 @@ ARG TARGETARCH
 ENV PIP_CACHE_DIR=/app/.cache \
     LANG=en_GB.UTF-8 \
     DOCKER_HOST=unix:///var/run/docker.sock
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
-RUN sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+#RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+#RUN sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
     libsqlite3-dev \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
