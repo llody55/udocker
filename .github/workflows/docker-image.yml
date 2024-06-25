@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          context: ./Dockerfile
+          context: .
           tags: |
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
