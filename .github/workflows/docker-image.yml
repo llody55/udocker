@@ -76,7 +76,7 @@ jobs:
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
             ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
             ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
   release:
     needs: build
