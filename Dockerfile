@@ -25,10 +25,7 @@ RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # 第二阶段
-FROM --platform=$TARGETPLATFORM python:3.9.10-slim
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-ARG TARGETARCH
+FROM  python:3.9.10-slim
 
 LABEL maintainer="llody55"
 
