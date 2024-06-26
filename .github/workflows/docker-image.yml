@@ -40,6 +40,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo
+
       - name: run python test
         run: |
           python manage.py test
@@ -75,14 +80,18 @@ jobs:
           tags: |
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
-            ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
           platforms: linux/amd64,linux/arm64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
           secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            GIT_AUTH_TOKEN=${{ env.GITHUB_TOKEN }}
           debug: true
+      
+      - name: Sync images
+        run: |
+          sudo skopeo login --tls-verify=false -u "${{ env.HWYUM_DOCKER_USERNAME }}" -p "${{ env.HWYUM_DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY_HUAWEI }} \
+          && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} \
+          && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
 
   release:
     needs: build
