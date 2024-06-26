@@ -15,11 +15,15 @@ env:
   DOCKER_IMAGE_NAME: 'udocker'
   DOCKER_NAMESPACE: 'llody'
   DOCKER_REGISTRY_HUAWEI: 'swr.cn-southwest-2.myhuaweicloud.com'
+  DOCKER_REGISTRY_ALIYUM: 'registry.cn-hangzhou.aliyuncs.com'
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
   HWYUM_DOCKER_USERNAME: ${{ secrets.HWYUM_DOCKER_USERNAME }}
   HWYUM_DOCKER_PASSWORD: ${{ secrets.HWYUM_DOCKER_PASSWORD }}
+  ALIYUM_DOCKER_USERNAME: ${{ secrets.ALIYUM_DOCKER_USERNAME }}
+  ALIYUM_DOCKER_PASSWORD: ${{ secrets.ALIYUM_DOCKER_PASSWORD }}
+
 
 
 jobs:
@@ -44,6 +48,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y skopeo
+          skopeo -v
 
       - name: run python test
         run: |
@@ -68,16 +73,16 @@ jobs:
       - name: Login to Huawei Cloud Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.DOCKER_REGISTRY_HUAWEI }}
-          username: ${{ env.HWYUM_DOCKER_USERNAME }}
-          password: ${{ env.HWYUM_DOCKER_PASSWORD }}
+          registry: ${{ env.DOCKER_REGISTRY_ALIYUM }}
+          username: ${{ env.ALIYUM_DOCKER_USERNAME }}
+          password: ${{ env.ALIYUM_DOCKER_PASSWORD }}
 
       - name: build images
         run: |
           docker buildx build -t ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} --platform=linux/arm64,linux/amd64 -o type=registry .
           docker buildx build -t ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest --platform=linux/arm64,linux/amd64 -o type=registry .
-          docker buildx build -t ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} --platform=linux/arm64,linux/amd64 -o type=registry .
-          docker buildx build -t ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest  --platform=linux/arm64,linux/amd64 -o type=registry .
+          docker buildx build -t ${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} --platform=linux/arm64,linux/amd64 -o type=registry .
+          docker buildx build -t ${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest  --platform=linux/arm64,linux/amd64 -o type=registry .
 
   release:
     needs: build
