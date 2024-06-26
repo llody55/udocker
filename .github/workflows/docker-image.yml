@@ -84,7 +84,7 @@ jobs:
       
       - name: Sync images
         run: |
-          skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
+          # skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
           skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest 
 
   release:
