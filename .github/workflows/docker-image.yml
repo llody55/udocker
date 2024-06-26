@@ -43,11 +43,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Install skopeo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
-
       - name: run python test
         run: |
           python manage.py test
@@ -87,8 +82,17 @@ jobs:
       
       - name: Sync images
         run: |
-          skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
-          skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest 
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            docker.io//rancher/mirrored-skopeo-skopeo:v1.13.2 \
+            skopeo login --tls-verify=false -u "${{ env.ALIYUM_DOCKER_USERNAME }}" -p "${{ env.ALIYUM_DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY_ALIYUM }} \
+            && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            docker.io//rancher/mirrored-skopeo-skopeo:v1.13.2 \
+            skopeo login --tls-verify=false -u "${{ env.ALIYUM_DOCKER_USERNAME }}" -p "${{ env.ALIYUM_DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY_ALIYUM }} \
+            && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+  
 
   release:
     needs: build
