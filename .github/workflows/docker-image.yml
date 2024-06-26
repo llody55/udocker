@@ -82,10 +82,7 @@ jobs:
       
       - name: Login and sync images to Aliyun registry
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker.io//rancher/mirrored-skopeo-skopeo:v1.13.2 \
-            skopeo login --tls-verify=false -u "${{ env.ALIYUM_DOCKER_USERNAME }}" -p "${{ env.ALIYUM_DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY_ALIYUM }} \
-            && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 \
-            && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:latest docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:latest
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker.io//rancher/mirrored-skopeo-skopeo:v1.13.2 skopeo login --tls-verify=false -u "${{ env.ALIYUM_DOCKER_USERNAME }}" -p "${{ env.ALIYUM_DOCKER_PASSWORD }}" ${{ env.DOCKER_REGISTRY_ALIYUM }} && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 && skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:latest docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:latest
         
 
               
