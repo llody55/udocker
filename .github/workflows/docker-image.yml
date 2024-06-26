@@ -73,7 +73,7 @@ jobs:
           password: ${{ env.HWYUM_DOCKER_PASSWORD }}
 
       - name: build images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v3
         with:
           push: true
           context: .
@@ -81,11 +81,6 @@ jobs:
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
             ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
-          secrets: |
-            GIT_AUTH_TOKEN=${{ env.GITHUB_TOKEN }}
-          debug: true
       
       - name: Sync images
         run: |
