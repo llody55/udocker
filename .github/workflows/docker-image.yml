@@ -82,6 +82,7 @@ jobs:
       
       - name: Login and sync images to Aliyun registry
         run: |
+          chmod +x ./bin/skopeo
           ./bin/skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:v1.1.3 
           ./bin/skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/udocker:latest docker://${{ env.DOCKER_REGISTRY_ALIYUM }}/${{ env.DOCKER_NAMESPACE }}/udocker:latest
         
