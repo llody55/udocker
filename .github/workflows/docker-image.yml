@@ -76,11 +76,8 @@ jobs:
         run: |
           docker buildx build -t ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} --platform=linux/arm64,linux/amd64 -o type=registry .
           docker buildx build -t ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest --platform=linux/arm64,linux/amd64 -o type=registry .
-      
-      - name: Sync images
-        run: |
-          skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }}
-          skopeo copy --all docker://docker.io/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest docker://${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest 
+          docker buildx build -t ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.RELEASE_VERSION }} --platform=linux/arm64,linux/amd64 -o type=registry .
+          docker buildx build -t ${{ env.DOCKER_REGISTRY_HUAWEI }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_IMAGE_NAME }}:latest  --platform=linux/arm64,linux/amd64 -o type=registry .
 
   release:
     needs: build
