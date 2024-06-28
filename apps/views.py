@@ -1135,6 +1135,44 @@ def get_volumes_list(request):
     except DockerException as e:
         logger.error(e)
 
+# 回显历史镜像版本
+@login_required
+def get_historicalmirror_list(request):
+    mirror_data = []
+    image_info = request.GET.get("image")
+    print("传递的镜像:",image_info)
+    try:
+        #容器管理模块API
+        success, client = docker_mod.connect_to_docker()
+        if success:
+            #image_info = [item['image'] for item in request_data]
+            # 获取所有镜像列表
+            images = client.images.list()
+
+            # 过滤出属于特定仓库的镜像
+            specific_images = []
+            for image in images:
+                for digest in image.attrs.get('RepoDigests', []):
+                    # 使用image_info中的值替换原有的匹配规则
+                    if digest and digest.startswith(image_info.split(':')[0]  + '@'):
+                        specific_images.append(image)
+                        break
+            # 构建返回的历史镜像数据
+            historical_mirror_data = []
+            for image in specific_images:
+                tag_version = image.tags[0].split(':')[-1] if image.tags else '<none>'
+                historical_mirror_data.append({
+                    'REPOSITORY': image.tags[0] if image.tags else '<none>',
+                    'TAG': tag_version,
+                    'IMAGE ID': image.short_id,
+                    'CREATED': image.attrs['Created'],
+                    'SIZE': image.attrs['VirtualSize']/1024/1024,
+                })
+            print("数据:",historical_mirror_data)
+        return render(request, 'container/docker_mirror.html',{"historical_mirror_data":historical_mirror_data})
+    except DockerException as e:
+        logger.error(e)
+
 
 # 网络管理
 @login_required

@@ -29,6 +29,7 @@ urlpatterns = [
     re_path("get_registries_list/",views.get_registries_list,name="get_registries_list"),
     re_path("get_volumes_list/",views.get_volumes_list,name="get_volumes_list"),
     re_path("get_network_list/",views.get_network_list,name="get_network_list"),
+    re_path("get_historicalmirror_list/",views.get_historicalmirror_list,name="get_historicalmirror_list"),
 
     re_path("docker_network_info/",views.docker_network_info,name="docker_network_info"),  # 远程docker网络管理页面
     re_path("docker_network_api/",views.docker_network_api,name="docker_network_api"),  # 远程docker网络管理API
