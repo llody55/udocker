@@ -846,7 +846,7 @@ def docker_images_api(request):
                 # 获取所有容器的镜像ID
                 container_image_ids = {container.image.id for container in containers}
                 def process_image(image):
-                    image_id = image.id
+                    image_id = image.short_id
                     image_tags = image.tags
                     image_size = humanize.naturalsize(image.attrs['Size'], binary=True)
                     time_str = image.attrs['Created']
@@ -1140,7 +1140,7 @@ def get_volumes_list(request):
 def get_historicalmirror_list(request):
     mirror_data = []
     image_info = request.GET.get("image")
-    print("传递的镜像:",image_info)
+    container_info = request.GET.get("name")
     try:
         #容器管理模块API
         success, client = docker_mod.connect_to_docker()
@@ -1161,19 +1161,140 @@ def get_historicalmirror_list(request):
             historical_mirror_data = []
             for image in specific_images:
                 tag_version = image.tags[0].split(':')[-1] if image.tags else '<none>'
+                created_time = parser.isoparse(image.attrs['Created'])
+                formatted_created_time = created_time.strftime('%Y-%m-%d %H:%M:%S')
+                size_mb = round(image.attrs['VirtualSize'] / 1024 / 1024)
                 historical_mirror_data.append({
+                    'container_info':container_info,
+                    'current_mirror': image_info,
                     'REPOSITORY': image.tags[0] if image.tags else '<none>',
                     'TAG': tag_version,
-                    'IMAGE ID': image.short_id,
-                    'CREATED': image.attrs['Created'],
-                    'SIZE': image.attrs['VirtualSize']/1024/1024,
+                    'IMAGE_ID': image.short_id,
+                    'CREATED': formatted_created_time,
+                    'SIZE': size_mb,
                 })
-            print("数据:",historical_mirror_data)
         return render(request, 'container/docker_mirror.html',{"historical_mirror_data":historical_mirror_data})
     except DockerException as e:
         logger.error(e)
 
+# 回滚方法
+@csrf_exempt
+@login_required
+def docker_rollback_api(request):
+    if request.method == 'POST':
+        request_data = QueryDict(request.body)
+        rollback_name = request_data.get("container_info")
+        rollback_image = request_data.get("rollbackImageId")
+        print(f"回滚容器名称：{rollback_name},回滚镜像ID：{rollback_image}")
+        try:
+            #容器管理模块API
+            success, client = docker_mod.connect_to_docker()
+            if not success:
+                return JsonResponse({'code': 1, 'msg': '无法连接到Docker'})
+             # 获取指定容器
+            container = client.containers.get(rollback_name)
+            # 获取当前容器正在使用的镜像
+            current_image_name = container.attrs['Config']['Image']
+            # 记录回滚前的镜像ID，为报错回滚事务做准备
+            original_image_id = container.attrs['Image']
 
+            # 备份原始容器配置
+            original_config = {
+                'Config': container.attrs['Config'],
+                'HostConfig': container.attrs['HostConfig'],
+                'NetworkSettings': container.attrs['NetworkSettings']
+            }
+
+            # 重新打TAG
+            client.images.get(rollback_image).tag(current_image_name)
+
+            # 提取原容器的配置信息
+            config = container.attrs['Config']
+            network_config = container.attrs['NetworkSettings']
+
+            # 生成新的host_config
+            host_config = client.api.create_host_config(
+                binds=container.attrs['HostConfig'].get('Binds'),
+                port_bindings=container.attrs['HostConfig'].get('PortBindings'),
+                links=container.attrs['HostConfig'].get('Links'),
+                publish_all_ports=container.attrs['HostConfig'].get('PublishAllPorts', False),
+                privileged=container.attrs['HostConfig'].get('Privileged', False),
+                dns=container.attrs['HostConfig'].get('Dns'),
+                dns_search=container.attrs['HostConfig'].get('DnsSearch'),
+                volumes_from=container.attrs['HostConfig'].get('VolumesFrom'),
+                network_mode=container.attrs['HostConfig'].get('NetworkMode'),
+                restart_policy=container.attrs['HostConfig'].get('RestartPolicy'),
+                cap_add=container.attrs['HostConfig'].get('CapAdd'),
+                cap_drop=container.attrs['HostConfig'].get('CapDrop'),
+                devices=container.attrs['HostConfig'].get('Devices'),
+                ulimits=container.attrs['HostConfig'].get('Ulimits'),
+                log_config=container.attrs['HostConfig'].get('LogConfig'),
+            )
+
+            # 检查网络配置
+            if len(network_config['Networks']) > 1:
+                result = {'code': 1, 'msg': '原容器连接到多个网络，请手动处理网络配置'}
+                return JsonResponse(result)
+            
+            # 停止并删除当前容器
+            container.stop()
+            container.remove()
+            
+            # 生成新的端口映射
+            ports = {}
+            exposed_ports = {}
+            if 'Ports' in network_config:
+                for port, mappings in network_config['Ports'].items():
+                    if mappings is not None:
+                        for mapping in mappings:
+                            ports[port] = mapping['HostPort']
+                    exposed_ports[port] = {}
+            
+            # 重新创建容器
+            new_container = client.api.create_container(
+                image=current_image_name,
+                name=rollback_name,
+                command=config['Cmd'],
+                environment=config.get('Env', []),  # 确保Env存在
+                host_config=host_config,
+                networking_config=client.api.create_networking_config({
+                    list(network_config['Networks'].keys())[0]: network_config['Networks'][list(network_config['Networks'].keys())[0]]
+                }),
+                volumes=config['Volumes'],
+                ports=exposed_ports
+            )
+
+            # 启动新容器
+            client.api.start(new_container['Id'])
+
+            result = {'code': 0, 'msg': '回滚成功,可返回容器管理查看！'}
+            return JsonResponse(result)
+        except DockerException as e:
+            logger.error(e)
+            # 回滚镜像tag到原始状态
+            try:
+                client.images.get(current_image_name).tag(original_image_id)
+                print(f"镜像TAG因容器创建失败进行回滚！！！")
+            except Exception as rollback_err:
+                print(f"镜像回滚失败 tag: {rollback_err}")
+            
+            # 恢复原始容器
+            try:
+                if 'Config' in original_config and 'HostConfig' in original_config and 'NetworkSettings' in original_config:
+                    new_container = client.containers.create(
+                        image=original_config['Config']['Image'],
+                        name=rollback_name,
+                        command=original_config['Config']['Cmd'],
+                        environment=original_config['Config'].get('Env', []),
+                        host_config=original_config['HostConfig'],
+                        networking_config=original_config['NetworkSettings']
+                    )
+                    client.api.start(new_container.id)
+            except Exception as restore_err:
+                print(f"Error restoring container: {restore_err}")
+
+            result = {'code': 1, 'msg': str(e)}
+            return JsonResponse(result)
 # 网络管理
 @login_required
 def docker_network_info(request):

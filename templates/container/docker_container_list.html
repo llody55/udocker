@@ -622,23 +622,27 @@
                     var checkStatus = table.checkStatus(obj.config.id)
                     var data = checkStatus.data; 
                     if(data.length == 0 ) {
-                        layer.msg("请至少选择一行")
+                        layer.msg("请至少选择一行", { icon: 5 })
                     } else if (data.length > 1){
-                        layer.msg("不支持多选")
+                        layer.msg("不支持多选", { icon: 5 })
                     } else {
-                        layer.open({
-                            type: 2,
-                            area: ['50%', '70%'],
-                            closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
-                            title: "文件管理器",
-                            shade: 0.1,
-                            shift: 2,
-                            shadeClose: false,
-                            content: '{% url "get_historicalmirror_list" %}?image=' + data[0].image,
-                            move: false, // 禁止拖动
-                            resize: false, // 禁止调整大小
-                            skin: 'white-background' // 应用自定义的背景颜色类 
-                          });
+                        layer.confirm('镜像回滚会<span style="color: red">重新创建</span>容器，请<span style="color: red">测试</span>并<span style="color: red">确认</span>要这么做？</br><span style="color: red">请注意，此操作不可逆</span>', function (index) {
+                            layer.open({
+                                type: 2,
+                                area: ['50%', '70%'],
+                                closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
+                                title: "容器镜像回滚",
+                                shade: 0.1,
+                                shift: 2,
+                                shadeClose: false,
+                                content: '{% url "get_historicalmirror_list" %}?image=' + data[0].image + '&name=' + data[0].name,
+                                move: false, // 禁止拖动
+                                resize: false, // 禁止调整大小
+                                skin: 'white-background' // 应用自定义的背景颜色类 
+                            });
+                            layer.close(index);
+                        })
+                        
                     }
                     break
             }

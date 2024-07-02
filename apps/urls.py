@@ -24,6 +24,7 @@ urlpatterns = [
     re_path("docker_image_info/",views.docker_image_info,name="docker_image_info"),  # 远程docker镜像管理
     re_path("docker_images_api/",views.docker_images_api,name="docker_images_api"),  # 远程docker镜像管理API
     re_path("docker_images_pull/",views.docker_images_pull,name="docker_images_pull"),  # 远程docker镜像管理拉取镜像
+    re_path("docker_rollback_api/",views.docker_rollback_api,name="docker_rollback_api"), 
 
     re_path("get_images_list/",views.get_images_list,name="get_images_list"),
     re_path("get_registries_list/",views.get_registries_list,name="get_registries_list"),

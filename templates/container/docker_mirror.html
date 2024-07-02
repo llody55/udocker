@@ -14,6 +14,7 @@
     </style>
   </head>
   <body>
+    {% csrf_token %}
     <div class="layui-card">
       <div class="layui-card-body">
         <div class="layui-row">
@@ -33,17 +34,31 @@
                   </colgroup>
                   <tbody>
                     <tr>
-                      <td>REPOSITORY</td>
-                      <td>TAG</td>
-                      <td>CREATED</td>
-                      <td>SIZE</td>
+                      <td>仓库</td>
+                      <td>版本</td>
+                      <td>镜像ID</td>
+                      <td>创建时间</td>
+                      <td>大小</td>
+                      <td>状态</td>
+                      <td>操作</td>
                     </tr>
                     {% for mirror in historical_mirror_data %}
                       <tr>
                         <td>{{ mirror.REPOSITORY }}</td>
                         <td>{{ mirror.TAG }}</td>
+                        <td>{{ mirror.IMAGE_ID }}</td>
                         <td>{{ mirror.CREATED }}</td>
-                        <td>{{ mirror.SIZE }}</td>
+                        <td>{{ mirror.SIZE }} MB</td>
+                        <td>
+                          {% if mirror.REPOSITORY == mirror.current_mirror %}
+                            <span class="layui-badge layui-bg-green">UP</span>
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>
+                          <button class="layui-btn layui-btn-xs layui-btn-danger rollback-btn" data-image-id="{{ mirror.IMAGE_ID }}" data-container-info="{{ mirror.container_info }}">回滚</button>
+                        </td>
                       </tr>
                     {% endfor %}
                   </tbody>
@@ -55,5 +70,48 @@
       </div>
     </div>
     <script src="/static/layui/layui.js"></script>
+    <script>
+      layui.use(['layer', 'util', 'jquery'], function () {
+        var layer = layui.layer;
+        var util = layui.util;
+        var $ = layui.$;
+
+        $('.rollback-btn').on('click', function () {
+            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+            var rollbackImageId = $(this).data('image-id');
+            var containerInfo = $(this).data('container-info');
+
+            //console.log('回滚镜像ID:', rollbackImageId);
+            //console.log('回滚容器:', containerInfo);
+    
+            $.ajax({
+              url: '{% url "docker_rollback_api" %}',
+              method: 'POST',
+              data: {
+                rollbackImageId: rollbackImageId,
+                container_info: containerInfo
+              },
+              headers: { 'X-CSRFToken': csrf_token },
+              success: function (result) {
+                if (result.code == '0') {
+                    
+                    layer.msg(result.msg, { icon: 6, time: 2000 }, function () {
+                      // 重新加载页面
+                      window.location.reload()
+                  });
+                } else {
+                    layer.msg(result.msg, { icon: 5 })
+                }
+                  
+              },
+              error: function(xhr, status, error) {
+                  console.error('Error:', error);
+                  // 处理错误响应
+              }
+            })
+        })
+      })
+      
+    </script>
   </body>
 </html>
