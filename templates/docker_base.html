@@ -9,6 +9,7 @@
     <!-- <link href="http://pt.llody.top:1080/7.jpg" type="image/x-icon" rel="shortcut icon" /> -->
     <link href="/static/layui/css/layui.css" rel="stylesheet" /> <!-- 注意路劲 -->
     <link href="/static/xterm/xterm.css" rel="stylesheet" type="text/css" />
+    <link href="/static/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
     <link href="//at.alicdn.com/t/c/font_4111199_zcutv4ow13q.css" rel="stylesheet" /> <!-- 文件夹图标矢量图-->
 
     <style>
@@ -165,7 +166,7 @@
                         <dd><a href="" style="color: black;">{% translate "基本资料" %}</a></dd>
                         <dd><a href="" style="color: black;">{% translate "安全设置" %}</a></dd>
                         <hr>
-                        <dd><a href="{% url 'logout' %}" style="color: black;">{% translate "退出" %}</a></dd>
+                        <dd><a href="{% url 'logout' %}" id="logoutLink" style="color: black;">{% translate "退出" %}</a></dd>
                     </dl>
                 </li>
                 {% else %}
@@ -213,7 +214,7 @@
                         
                     </li>
                     <li class="layui-nav-item {% block item-9 %}{% endblock %}">
-                        <a href="#"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>{% translate "关于" %}</span></i></a>
+                        <a href="{% url 'about' %}"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>{% translate "关于" %}</span></i></a>
                     </li>
                 </ul>
             </div>
@@ -230,12 +231,13 @@
 
         <div class="layui-footer" style="text-align: center">
             <!-- 底部固定区域 -->
-            <a href="https://github.com/llody55/udocker"> {% translate "Udocker 控制台" %}</a> ©2024 llody version {{version}} &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/favicon.ico">
+            <a href="https://github.com/llody55/udocker"> {% translate "Udocker 控制台" %}</a> ©2024 llody version: v{{version}} &nbsp;&nbsp;&nbsp; <img alt="欢迎关注" src="https://static.llody.top/images/favicon.ico">
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
     <script src="/static/layui/layui.js"></script>
     <script src="/static/xterm/xterm.js"></script>
+    <script src="/static/sweetalert2/sweetalert2.min.js"></script>
     {% block custom_js %}{% endblock %}
     <script>
         //JS
@@ -358,6 +360,18 @@
             $('#message').on('click', function () {
                 layer.msg("开发中。。。。",{ icon: 6 } )
             })
+
+            // 登出链接点击事件
+            document.getElementById('logoutLink').addEventListener('click', function(event) {
+                event.preventDefault(); // 阻止默认的链接跳转行为
+
+                // 清除 localStorage 中的 versionUpdateShown 项
+                localStorage.removeItem('versionUpdateShown');
+
+                // 执行登出操作
+                window.location.href = "{% url 'logout' %}";
+            });
+            
         });
     </script>
 </body>

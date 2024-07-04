@@ -62,4 +62,6 @@ urlpatterns = [
     re_path("webssh_update_file_api/",views.webssh_update_file_api,name="webssh_update_file_api"),  # 上传API
     re_path("webssh_download_file_api/",views.webssh_download_file_api,name="webssh_download_file_api"),  # 下载方法API
     re_path("webssh_delete_file_api/",views.webssh_delete_file_api,name="webssh_delete_file_api"),  # 删除文件方法API
+
+    re_path("about/",views.about,name="about"),
 ]

@@ -46,6 +46,26 @@ docker run --privileged -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/ru
 mkdir /opt/udocke_db
 docker run --privileged -itd --name udocker -p 8000:8000 -p 9002:9002 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/udocke_db:/app/db  swr.cn-southwest-2.myhuaweicloud.com/llody/udocker:latest 
 ```
+### docker-compose方式(推荐)
+```yaml
+version: '3'
+
+services:
+  udocker:
+    image: swr.cn-southwest-2.myhuaweicloud.com/llody/udocker:latest
+    container_name: udocker
+    privileged: true
+    ports:
+      - "8000:8000"
+      - "9002:9002"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/udocke_db:/app/db
+    restart: always
+```
+> 启动方式：docker-compose up -d <br>
+> 更新方式：docker-compose pull && docker-compose up -d --remove-orphans
+
 ### 账户密码
 
 > 默认账户：llody 密码：1qaz2wsx

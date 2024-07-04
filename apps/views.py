@@ -121,21 +121,21 @@ def user_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        print("当前用户:", user)
+        #print("当前用户:", user)
         if user is not None:
             # 获取用户所属的所有角色
             roles = user.roles.all()
             for role in roles:
                 # 获取用户所属的所有角色，并存入session
                 request.session['user_roles'] = role.name
-                print(f"当前用户所在角色: {role.name}")
+                #print(f"当前用户所在角色: {role.name}")
                 # 获取当前角色的所有权限
                 role_permissions = role.permissions.all()
                 for perm in role_permissions:
                     print(f"当前角色所有权限: {perm.name}")
             # 检查用户是否有某个具体的权限（需要提供app_label）
             has_edit_permission = user.has_perm('edit_permission')
-            print("是否有编辑权限:", has_edit_permission)
+            #print("是否有编辑权限:", has_edit_permission)
             login(request, user)
             return redirect('index')
         else:
@@ -178,6 +178,8 @@ def password_reset_request(request):
             # 如果当前密码验证失败，返回错误信息
             return JsonResponse({'error': '当前密码不正确，请重试','code':'1'})
 
+
+# 容器列表页
 @csrf_exempt            
 @login_required
 def docker_container(request):
@@ -2133,3 +2135,7 @@ def webssh_delete_file_api(request):
             return JsonResponse(result)
         finally:
             sftp.close()
+
+@login_required
+def about(request):
+    return render(request, 'about.html')

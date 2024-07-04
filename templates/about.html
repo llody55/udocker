@@ -1,0 +1,63 @@
+{% extends 'docker_base.html' %}
+{% block title %}关于{% endblock %}
+{% block item-9 %}layui-nav-itemed{% endblock %}
+{% load i18n %}
+{% block head_style %}
+    <style>
+        body {
+            margin: 10px;
+        }
+
+        /* 标题样式 */
+        .layui-card-header {
+            background-color: #f2f2f2;
+            /* 修改标题背景颜色 */
+            color: #333;
+            /* 修改标题文字颜色 */
+            font-size: 16px;
+            /* 修改标题文字大小 */
+            border-bottom: 1px solid #e6e6e6;
+            /* 在标题下方添加边框线 */
+            line-height: 36px;
+            /* 调整行高 */
+        }
+        /* 底部内边距样式*/
+        #fixed {
+            padding-bottom: 40px; /* 底部填充，值应大于或等于提交按钮的高度加上一些额外空间 */
+        }
+    </style>
+{% endblock %}
+{% block context %}
+<span class="layui-breadcrumb">
+    <a href="#">首页</a>
+    <a><cite>关于</cite></a>
+</span>
+<hr>
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-bg-gray" style="padding: 16px;">
+            <div class="layui-row layui-col-space15">
+              <div class="layui-col-md12">
+                <div class="layui-card">
+                  <div class="layui-card-header">版本</div>
+                  <div class="layui-card-body">
+                    当前版本：<span style="color: #1e9fff;">{{ version }} </span><br>
+                    最新版本：{% if version == latest_version %}
+                                已经是最新版了
+                            {% else %}
+                            <span style="color: #16b777;">{{ latest_version }}</span>  <a href="https://github.com/llody55/udocker" target="_blank"><span style="color: #16b777;"> 查看版本差异 </span></a>
+                            {% endif %}
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block custom_js %}
+JS
+{% endblock %}
+

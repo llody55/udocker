@@ -202,4 +202,56 @@
         largeImage.style.display = "none";
       };
   </script>
+  <script>
+    layui.use(['element', 'layer', 'util'], function () {
+      var element = layui.element
+      var layer = layui.layer
+      var util = layui.util
+      var $ = layui.$;
+
+      $(document).ready(function() {
+        var currentVersion = "{{ version }}";
+        var latestVersion = "{{ latest_version }}";
+        var showNotification = "{{ show_notification }}";
+
+        if (currentVersion !== latestVersion ) {
+          // 检查是否已经显示过更新提示
+          if (!localStorage.getItem('versionUpdateShown')) {
+              Swal.fire({
+                title: '检测到新版本！',
+                html: '当前最新的版本是：<span style="color: #1e9fff;">v' + latestVersion + '</span>，点击前往升级。',
+                icon: 'info',
+                timer: 5000,
+                timerProgressBar: true,
+                showCancelButton: true,
+                confirmButtonText: '前往升级',
+                cancelButtonText: '暂不升级',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                width: 300,  // 设置弹出框的宽度
+                height: 100,
+                padding: '2em',  // 设置弹出框的内边距
+                customClass: {
+                    popup: 'swal2-popup swal2-modal swal2-icon-info swal2-show',
+                    confirmButton: 'swal2-confirm',
+                    cancelButton: 'swal2-cancel'
+                },
+                position: 'bottom-start'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'https://github.com/llody55/udocker';
+                }
+            });
+
+             // 设置标志，表示已经显示过更新提示
+             //localStorage.setItem('versionUpdateShown', 'true');
+
+          }else{
+            console.log("已弹出，开始静默")
+          }
+            
+        }
+      });
+    })
+  </script>
   {% endblock %}
