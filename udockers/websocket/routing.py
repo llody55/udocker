@@ -4,11 +4,13 @@ from django.urls import re_path
 from udockers.websocket.docker_logs_consumers import DockerLogConsumer
 from udockers.websocket.docker_terminal_consumers import ProxyConsumer
 from udockers.websocket.webssh_consumers import SSHConsumer
+from udockers.websocket.docker_image_pull_consumers import DockerPullConsumer
 
 websocket_urlpatterns =[
     re_path(r'^apps/docker_logs/$', DockerLogConsumer.as_asgi(),name='docker_logs'),
     re_path(r'^apps/docker_terminal/$', ProxyConsumer.as_asgi(),name='docker_terminal'),
     re_path(r'^apps/webssh_terminal/$', SSHConsumer.as_asgi(),name='webssh_terminal'),
+    re_path(r'apps/dockerpull/$', DockerPullConsumer.as_asgi()),
 ]
 application = ProtocolTypeRouter({
     'websocket': AuthMiddlewareStack(

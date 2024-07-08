@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Docker Image Pull</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"/>
+    <script src="/static/layui/layui.js"></script>
+    <style>
+        .log-entry {
+            margin-bottom: 10px;
+        }
+        .log-entry p {
+            margin: 0;
+        }
+        .progress-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-container">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <input type="text" id="image_name" class="layui-input" placeholder="Enter Docker Image Name">
+                <button class="layui-btn" id="pull_button">Pull Image</button>
+            </div>
+            <div class="layui-col-md12">
+                <div id="output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        var socket = new WebSocket(protocol + window.location.host + '/apps/dockerpull/');
+        var output = document.getElementById('output');
+        var logEntries = {};
+
+        document.getElementById('pull_button').onclick = function() {
+            var imageName = document.getElementById('image_name').value;
+            output.innerHTML = ''; // 清空之前的日志
+            logEntries = {}; // 清空之前的日志条目
+            socket.send(JSON.stringify({
+                'image_name': imageName
+            }));
+        };
+
+        socket.onmessage = function(e) {
+            var data = JSON.parse(e.data);
+            var message = data.message;
+
+            if (message.id) {
+                if (!logEntries[message.id]) {
+                    // 创建新的日志条目
+                    var logEntry = document.createElement('div');
+                    logEntry.classList.add('log-entry');
+                    logEntry.setAttribute('id', 'log-' + message.id);
+
+                    var status = document.createElement('p');
+                    status.innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                    logEntry.appendChild(status);
+
+                    if (message.progressDetail && message.progressDetail.total > 0) {
+                        var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
+                        var progressBarContainer = document.createElement('div');
+                        progressBarContainer.classList.add('layui-progress', 'progress-container');
+                        progressBarContainer.setAttribute('lay-showPercent', 'true');
+
+                        var progressBar = document.createElement('div');
+                        progressBar.classList.add('layui-progress-bar');
+                        progressBar.setAttribute('lay-percent', progress + '%');
+                        progressBar.style.width = progress + '%';
+
+                        progressBarContainer.appendChild(progressBar);
+                        logEntry.appendChild(progressBarContainer);
+                    }
+
+                    output.appendChild(logEntry);
+                    logEntries[message.id] = logEntry;
+                    layui.element.init(); // 重新初始化进度条
+                } else {
+                    // 更新现有的日志条目
+                    var existingEntry = logEntries[message.id];
+                    existingEntry.querySelector('p').innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                    if (message.progressDetail && message.progressDetail.total > 0) {
+                        var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
+                        var progressBar = existingEntry.querySelector('.layui-progress-bar');
+                        if (!progressBar) {
+                            // 如果进度条不存在，创建新的进度条
+                            var progressBarContainer = document.createElement('div');
+                            progressBarContainer.classList.add('layui-progress', 'progress-container');
+                            progressBarContainer.setAttribute('lay-showPercent', 'true');
+
+                            progressBar = document.createElement('div');
+                            progressBar.classList.add('layui-progress-bar');
+                            progressBar.setAttribute('lay-percent', progress + '%');
+                            progressBar.style.width = progress + '%';
+
+                            progressBarContainer.appendChild(progressBar);
+                            existingEntry.appendChild(progressBarContainer);
+                        } else {
+                            progressBar.setAttribute('lay-percent', progress + '%');
+                            progressBar.style.width = progress + '%';
+                        }
+                        layui.element.init(); // 重新初始化进度条
+                    }
+                }
+            } else {
+                // 处理最终结果的情况
+                var finalStatus = document.createElement('div');
+                finalStatus.classList.add('log-entry');
+                finalStatus.innerHTML = '<p><strong>Final Status:</strong> ' + message.status + '</p>';
+                if (message.error) {
+                    finalStatus.innerHTML += '<p><strong>Error:</strong> ' + message.error + '</p>';
+                    finalStatus.classList.add('layui-bg-red'); // 添加红色背景表示错误
+                } else {
+                    finalStatus.classList.add('layui-bg-green'); // 添加绿色背景表示成功
+                }
+                output.appendChild(finalStatus);
+            }
+        };
+
+        socket.onclose = function(e) {
+            console.error('WebSocket closed unexpectedly');
+        };
+    </script>
+</body>
+</html>

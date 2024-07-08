@@ -828,6 +828,10 @@ def docker_terminal(request):
     connect={"name":name,"container_id":container_id,"containers":containers}
     return render(request, 'container/docker_terminal.html',{"connect":connect})
 
+@login_required
+def docker_pull_view(request):
+    return render(request, 'images/images_pull.html')
+
 # 镜像管理
 @login_required
 def docker_image_info(request):
@@ -980,7 +984,7 @@ def docker_images_api(request):
                 raw_password = docker_mod.decrypt_password(encrypted_password, key)
                 # 同步方法
                 # 容器管理模块API
-                print("接受的镜像仓库:",registries_url,raw_password)
+                print("接收的镜像仓库:",registries_url)
                 logger.error(image_name)
                 success, client = docker_mod.connect_to_docker()
                 if success:

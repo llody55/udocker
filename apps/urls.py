@@ -20,6 +20,7 @@ urlpatterns = [
     re_path("docker_container_batchrestart_api/",views.docker_container_batchrestart_api,name="docker_container_batchrestart_api"),
     re_path("docker_logs/",views.docker_logs,name="docker_logs"),  # 远程docker容器日志
     re_path("docker_terminal/",views.docker_terminal,name="docker_terminal"),  # 远程docker容器终端
+    re_path("docker_pull/",views.docker_pull_view,name="docker_pull"),
 
     re_path("docker_image_info/",views.docker_image_info,name="docker_image_info"),  # 远程docker镜像管理
     re_path("docker_images_api/",views.docker_images_api,name="docker_images_api"),  # 远程docker镜像管理API

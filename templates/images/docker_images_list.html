@@ -57,6 +57,7 @@
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
                     <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "拉取镜像" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理【none】镜像" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="pull">{% translate "PULL" %}</button>
                     {% endif %}
                 </script>
                 <!--  行工具 -->
@@ -250,6 +251,18 @@
                         })
                         layer.close(index);
                     });
+                    break
+                case 'pull':
+                    layer.open({
+                        type: 2,
+                        area: ['600px', '70%'],
+                        closeBtn: true,
+                        title: "拉取镜像",
+                        shift: 2,
+                        shade: 0.2,
+                        shadeClose: false,
+                        content: '{% url "docker_pull" %}',
+                    })
                     break
             }
         })
