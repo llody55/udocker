@@ -59,6 +59,10 @@
                     <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理容器" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="Batch_restart">{% translate "批量重启" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-red" lay-event="mirror_rollback">{% translate "镜像回滚" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" id="rowMode">
+                        <span id="rowModeText">单行模式（默认）</span>
+                        <i class="layui-icon layui-icon-down layui-font-12"></i>
+                    </button>
                     {% endif %}
                 </script>
                 <script type="text/javascript">
@@ -114,8 +118,6 @@
             elem: '#demo' // 选择table元素
             , url: "{% url 'docker_container_api' %}"  //数据接口, namespace值从当前session中获取
             , page: true //开启分页
-            //, lineStyle: 'height: 51px;' // 定义表格的多行样式
-            //, className: 'layui-table-testcss' // 用于给表格主容器追加 css 类名
             , toolbar: '#demoTable'
             , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
                 title: '提示'
@@ -157,6 +159,7 @@
                 })
             }
         });
+
         // 健康状态格式化
         function health_statusFormat(d) {
             result = "";
@@ -256,7 +259,21 @@
             });
         });
 
+        // 初始化行模式
+        var isSingleRow = true;
 
+        $('#rowMode').on('click', function () {
+            if (isSingleRow) {
+                table.reload('TT', { lineStyle: 'height: 95px;' });
+                $('#rowModeText').text('多行模式');
+                layer.msg('已设为多行');
+            } else {
+                table.reload('TT', { lineStyle: null });
+                $('#rowModeText').text('单行模式');
+                layer.msg('已设为单行');
+            }
+            isSingleRow = !isSingleRow;
+        });
 
 
         //监听行工具事件
@@ -648,16 +665,24 @@
             }
         })
 
-        // 监听刷新按钮点击事件
-        $('#refreshBtn').on('click', function () {
+        // 封装刷新函数
+        function refreshTable() {
             //获取当前页码
             var currPage = $('.layui-laypage-em').next().html();
-                // 进行刷新操作
-                table.reload('TT', {
-                    url: "{% url 'docker_container_api' %}",
-                    page: { curr: currPage }//刷新当前页码
-                });
+            // 进行刷新操作
+            table.reload('TT', {
+                url: "{% url 'docker_container_api' %}",
+                page: { curr: currPage } //刷新当前页码
+            });
+        }
+
+        // 监听刷新按钮点击事件
+        $('#refreshBtn').on('click', function () {
+            refreshTable();
         });
+
+        // 设置自动刷新，每隔5秒刷新一次
+        //setInterval(refreshTable, 5000);
 
         // 监听搜索事件
         $(document).on('click', '#searchBtn', function () {

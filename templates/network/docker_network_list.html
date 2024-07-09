@@ -57,6 +57,10 @@
                     {% if 'admin' in request.session.kube_user_role or request.user.is_superuser %}
                     <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">{% translate "创建" %}</button>
                     <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="clear">{% translate "清理网络" %}</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-primary" id="rowMode">
+                        <span id="rowModeText">单行模式（默认）</span>
+                        <i class="layui-icon layui-icon-down layui-font-12"></i>
+                    </button>
                     {% endif %}
                 </script>
                 <!--  行工具 -->
@@ -120,6 +124,22 @@
                 return d.name
             }
         }
+
+        // 初始化行模式
+        var isSingleRow = true;
+
+        $('#rowMode').on('click', function () {
+            if (isSingleRow) {
+                table.reload('TT', { lineStyle: 'height: 95px;' });
+                $('#rowModeText').text('多行模式');
+                layer.msg('已设为多行');
+            } else {
+                table.reload('TT', { lineStyle: null });
+                $('#rowModeText').text('单行模式');
+                layer.msg('已设为单行');
+            }
+            isSingleRow = !isSingleRow;
+        });
 
         //监听行工具事件
         table.on('tool(test)', function (obj) {

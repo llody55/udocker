@@ -4,8 +4,25 @@
     <meta charset="utf-8">
     <title>Docker Image Pull</title>
     <link rel="stylesheet" href="/static/layui/css/layui.css"/>
-    <script src="/static/layui/layui.js"></script>
     <style>
+        body {
+            margin: 10px;
+        }
+
+        /* 标题样式 */
+        .layui-card-header {
+            background-color: #f2f2f2;
+            /* 修改标题背景颜色 */
+            color: #333;
+            /* 修改标题文字颜色 */
+            font-size: 16px;
+            /* 修改标题文字大小 */
+            border-bottom: 1px solid #e6e6e6;
+            /* 在标题下方添加边框线 */
+            line-height: 36px;
+            /* 调整行高 */
+        }
+
         .log-entry {
             margin-bottom: 10px;
         }
@@ -18,111 +35,184 @@
     </style>
 </head>
 <body>
-    <div class="layui-container">
-        <div class="layui-row">
-            <div class="layui-col-md12">
-                <input type="text" id="image_name" class="layui-input" placeholder="Enter Docker Image Name">
-                <button class="layui-btn" id="pull_button">Pull Image</button>
-            </div>
-            <div class="layui-col-md12">
-                <div id="output"></div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <fieldset class="layui-elem-field layui-field-title">
+                        <legend>拉取镜像</legend>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-form layui-row layui-col-space16">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">仓库地址</label>
+                                <div class="layui-col-md6">
+                                    <select id="registries" lay-verify="required"></select>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请选择用于拉取镜像的仓库</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">镜像地址</label>
+                                <div class="layui-col-md6">
+                                    <input type="text" id="image_name" name="url" class="layui-input" lay-verify="required" placeholder="例如：llody/nginx:v1,23,4">
+                                    <button class="layui-btn" id="pull_button">Pull Image</button>
+                                </div>
+                                <div class="layui-form-mid layui-text-em layui-font-red">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;请填写完整的镜像地址</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div id="output"></div>
+                    </div>
+                    
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="/static/layui/layui.js"></script>
     <script>
-        var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        var socket = new WebSocket(protocol + window.location.host + '/apps/dockerpull/');
-        var output = document.getElementById('output');
-        var logEntries = {};
+        layui.use(['form', 'jquery', 'layer'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+            var layer = layui.layer;
 
-        document.getElementById('pull_button').onclick = function() {
-            var imageName = document.getElementById('image_name').value;
-            output.innerHTML = ''; // 清空之前的日志
-            logEntries = {}; // 清空之前的日志条目
-            socket.send(JSON.stringify({
-                'image_name': imageName
-            }));
-        };
+            // 加载数据库中镜像仓库地址
+            function loadRegistriesName() {
+                $.ajax({
+                    url: '{% url "get_registries_list" %}',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.status === 'success') {
+                            var RegistriesNameSelect = $("#registries");
 
-        socket.onmessage = function(e) {
-            var data = JSON.parse(e.data);
-            var message = data.message;
-
-            if (message.id) {
-                if (!logEntries[message.id]) {
-                    // 创建新的日志条目
-                    var logEntry = document.createElement('div');
-                    logEntry.classList.add('log-entry');
-                    logEntry.setAttribute('id', 'log-' + message.id);
-
-                    var status = document.createElement('p');
-                    status.innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
-                    logEntry.appendChild(status);
-
-                    if (message.progressDetail && message.progressDetail.total > 0) {
-                        var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
-                        var progressBarContainer = document.createElement('div');
-                        progressBarContainer.classList.add('layui-progress', 'progress-container');
-                        progressBarContainer.setAttribute('lay-showPercent', 'true');
-
-                        var progressBar = document.createElement('div');
-                        progressBar.classList.add('layui-progress-bar');
-                        progressBar.setAttribute('lay-percent', progress + '%');
-                        progressBar.style.width = progress + '%';
-
-                        progressBarContainer.appendChild(progressBar);
-                        logEntry.appendChild(progressBarContainer);
+                            $.each(data.registries, function (index, registries) {
+                                RegistriesNameSelect.append(new Option(registries.registries_name, registries.registries_url));
+                            });
+                            form.render('select'); // 更新渲染
+                        } else {
+                            layer.msg('加载镜像仓库列表失败: ' + result.msg);
+                        }
+                    },
+                    error: function () {
+                        layer.msg('加载镜像仓库列表失败', {icon: 5, time: 3000});
                     }
+                });
+            }
 
-                    output.appendChild(logEntry);
-                    logEntries[message.id] = logEntry;
-                    layui.element.init(); // 重新初始化进度条
-                } else {
-                    // 更新现有的日志条目
-                    var existingEntry = logEntries[message.id];
-                    existingEntry.querySelector('p').innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
-                    if (message.progressDetail && message.progressDetail.total > 0) {
-                        var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
-                        var progressBar = existingEntry.querySelector('.layui-progress-bar');
-                        if (!progressBar) {
-                            // 如果进度条不存在，创建新的进度条
+            // 初始加载仓库列表
+            loadRegistriesName();
+
+            var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            var socket = new WebSocket(protocol + window.location.host + '/apps/dockerpull/');
+            var output = document.getElementById('output');
+            var logEntries = {};
+
+            document.getElementById('pull_button').onclick = function() {
+                var imageName = document.getElementById('image_name').value;
+                var registryUrl = document.getElementById('registries').value;
+
+                // 验证镜像地址是否合法且不包含空格
+                if (!imageName || imageName.includes(' ')) {
+                    layer.msg('镜像地址不合法或包含空格', {icon: 5, time: 3000});
+                    return;
+                }
+
+                console.log("镜像:" + imageName + "地址：" + registryUrl )
+                output.innerHTML = ''; // 清空之前的日志
+                logEntries = {}; // 清空之前的日志条目
+                socket.send(JSON.stringify({
+                    'image_name': imageName,
+                    'registry_url': registryUrl
+                }));
+                
+            };
+
+            socket.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+                var message = data.message;
+
+                if (message.id) {
+                    if (!logEntries[message.id]) {
+                        // 创建新的日志条目
+                        var logEntry = document.createElement('div');
+                        logEntry.classList.add('log-entry');
+                        logEntry.setAttribute('id', 'log-' + message.id);
+
+                        var status = document.createElement('p');
+                        status.innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                        logEntry.appendChild(status);
+
+                        if (message.progressDetail && message.progressDetail.total > 0) {
+                            var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
                             var progressBarContainer = document.createElement('div');
                             progressBarContainer.classList.add('layui-progress', 'progress-container');
                             progressBarContainer.setAttribute('lay-showPercent', 'true');
 
-                            progressBar = document.createElement('div');
+                            var progressBar = document.createElement('div');
                             progressBar.classList.add('layui-progress-bar');
                             progressBar.setAttribute('lay-percent', progress + '%');
                             progressBar.style.width = progress + '%';
 
                             progressBarContainer.appendChild(progressBar);
-                            existingEntry.appendChild(progressBarContainer);
-                        } else {
-                            progressBar.setAttribute('lay-percent', progress + '%');
-                            progressBar.style.width = progress + '%';
+                            logEntry.appendChild(progressBarContainer);
                         }
-                        layui.element.init(); // 重新初始化进度条
-                    }
-                }
-            } else {
-                // 处理最终结果的情况
-                var finalStatus = document.createElement('div');
-                finalStatus.classList.add('log-entry');
-                finalStatus.innerHTML = '<p><strong>Final Status:</strong> ' + message.status + '</p>';
-                if (message.error) {
-                    finalStatus.innerHTML += '<p><strong>Error:</strong> ' + message.error + '</p>';
-                    finalStatus.classList.add('layui-bg-red'); // 添加红色背景表示错误
-                } else {
-                    finalStatus.classList.add('layui-bg-green'); // 添加绿色背景表示成功
-                }
-                output.appendChild(finalStatus);
-            }
-        };
 
-        socket.onclose = function(e) {
-            console.error('WebSocket closed unexpectedly');
-        };
+                        output.appendChild(logEntry);
+                        logEntries[message.id] = logEntry;
+                        layui.element.init(); // 重新初始化进度条
+                    } else {
+                        // 更新现有的日志条目
+                        var existingEntry = logEntries[message.id];
+                        existingEntry.querySelector('p').innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                        if (message.progressDetail && message.progressDetail.total > 0) {
+                            var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
+                            var progressBar = existingEntry.querySelector('.layui-progress-bar');
+                            if (!progressBar) {
+                                // 如果进度条不存在，创建新的进度条
+                                var progressBarContainer = document.createElement('div');
+                                progressBarContainer.classList.add('layui-progress', 'progress-container');
+                                progressBarContainer.setAttribute('lay-showPercent', 'true');
+
+                                progressBar = document.createElement('div');
+                                progressBar.classList.add('layui-progress-bar');
+                                progressBar.setAttribute('lay-percent', progress + '%');
+                                progressBar.style.width = progress + '%';
+
+                                progressBarContainer.appendChild(progressBar);
+                                existingEntry.appendChild(progressBarContainer);
+                            } else {
+                                progressBar.setAttribute('lay-percent', progress + '%');
+                                progressBar.style.width = progress + '%';
+                            }
+                            layui.element.init(); // 重新初始化进度条
+                        }
+                    }
+                } else {
+                    // 处理最终结果的情况
+                    var finalStatus = document.createElement('div');
+                    finalStatus.classList.add('log-entry');
+                    finalStatus.innerHTML = '<p><strong>Final Status:</strong> ' + message.status + '</p>';
+                    if (message.error) {
+                        finalStatus.innerHTML += '<p><strong>Error:</strong> ' + message.error + '</p>';
+                        finalStatus.classList.add('layui-bg-red'); // 添加红色背景表示错误
+                    } else {
+                        finalStatus.classList.add('layui-bg-green'); // 添加绿色背景表示成功
+                    }
+                    output.appendChild(finalStatus);
+                }
+            };
+
+            socket.onclose = function(e) {
+                console.error('WebSocket closed unexpectedly');
+            };
+        });
     </script>
 </body>
 </html>
