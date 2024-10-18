@@ -83,32 +83,43 @@
 
             //console.log('回滚镜像ID:', rollbackImageId);
             //console.log('回滚容器:', containerInfo);
-    
-            $.ajax({
-              url: '{% url "docker_rollback_api" %}',
-              method: 'POST',
-              data: {
-                rollbackImageId: rollbackImageId,
-                container_info: containerInfo
-              },
-              headers: { 'X-CSRFToken': csrf_token },
-              success: function (result) {
-                if (result.code == '0') {
+            layer.confirm('镜像回滚会<span style="color: red">重新创建</span>容器，请<span style="color: red">测试</span>并<span style="color: red">确认</span>要这么做？</br><span style="color: red">请注意，此操作不可逆</span>', function (index) {
+              layer.msg("回滚中，请稍等...")
+              // 显示 loading 效果
+              var loadingIndex = layer.load(3);
+              $.ajax({
+                url: '{% url "docker_rollback_api" %}',
+                method: 'POST',
+                data: {
+                  rollbackImageId: rollbackImageId,
+                  container_info: containerInfo
+                },
+                headers: { 'X-CSRFToken': csrf_token },
+                success: function (result) {
+                  if (result.code == '0') {
+                      // 关闭 loading 效果
+                      layer.close(loadingIndex);
+                      layer.msg(result.msg, { icon: 6, time: 2000 }, function () {
+                          // 重新加载页面
+                          window.location.reload()
+                      });
+                  } else {
+                      // 关闭 loading 效果
+                      layer.close(loadingIndex);
+                      layer.msg(result.msg, { icon: 5 })
+                  }
                     
-                    layer.msg(result.msg, { icon: 6, time: 2000 }, function () {
-                      // 重新加载页面
-                      window.location.reload()
-                  });
-                } else {
-                    layer.msg(result.msg, { icon: 5 })
+                },
+                error: function(xhr, status, error) {
+                    // 关闭 loading 效果
+                    layer.close(loadingIndex);
+                    console.error('Error:', error);
+                    // 处理错误响应
                 }
-                  
-              },
-              error: function(xhr, status, error) {
-                  console.error('Error:', error);
-                  // 处理错误响应
-              }
+              })
+              layer.close(index);
             })
+            
         })
       })
       

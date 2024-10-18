@@ -947,6 +947,8 @@ def docker_images_api(request):
                 msg = "删除失败：存在依赖的子镜像。"
             elif e.status_code == 409 and "image is referenced in multiple repositories" in str(e):
                 msg = "删除失败：存在依赖的多个子镜像。"
+            elif e.status_code == 404 and "No such image" in str(e):
+                msg = "删除失败：镜像不存在，你刷新看看？"
             else:
                 msg = "删除报错：%s" % e
         result = {'code': code, 'msg': msg}
@@ -1219,11 +1221,23 @@ def docker_rollback_api(request):
             #容器管理模块API
             success, client = docker_mod.connect_to_docker()
             if not success:
-                return JsonResponse({'code': 1, 'msg': '无法连接到Docker'})
+                result = {'code': 1, 'msg': '无法连接到Docker'}
+                return JsonResponse(result)
              # 获取指定容器
             container = client.containers.get(rollback_name)
             # 获取当前容器正在使用的镜像
             current_image_name = container.attrs['Config']['Image']
+            # 获取当前容器正在使用的镜像ID
+            current_image_id = container.attrs['Image']
+            current_image_id_short = current_image_id.split(':')[1][:12]
+            # 去掉rollback_image的前缀
+            if rollback_image.startswith('sha256:'):
+                rollback_images = rollback_image.split(':')[1][:12]
+            print(f"回滚镜像：{rollback_images},当前镜像ID：{current_image_id_short}")
+            # 先检查是否试图回滚到当前镜像
+            if rollback_images == current_image_id_short:
+                result = {'code': 1, 'msg': '不能回滚到当前正在使用的镜像'}
+                return JsonResponse(result)
             # 记录回滚前的镜像ID，为报错回滚事务做准备
             original_image_id = container.attrs['Image']
 
@@ -1324,6 +1338,7 @@ def docker_rollback_api(request):
 
             result = {'code': 1, 'msg': str(e)}
             return JsonResponse(result)
+
 # 网络管理
 @login_required
 def docker_network_info(request):
