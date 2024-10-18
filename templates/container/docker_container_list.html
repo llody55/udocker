@@ -128,6 +128,7 @@
                 { type: 'checkbox', fixed: 'left' }   //全选按钮
                 , { field: 'id', title: translations.containerId, sort: true ,hide:true}
                 , { field: 'name', title: translations.containerName +'<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
+                , { field: 'compose_project', title:"compose", sort: true,templet: composeFormat}
                 , { field: 'image', title: translations.containerImage, sort: true}
                 //, { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
                 , { field: 'health_status', title: translations.healthCheck +'<i class="layui-icon layui-icon-survey layui-font-14" title="只标记容器健康状态" style="margin-left: 5px;"></i>', width: 110, templet: health_statusFormat }
@@ -159,7 +160,19 @@
                 })
             }
         });
-
+        
+        // 健康状态格式化
+        function composeFormat(d) {
+            result = "";
+            if (d.is_docker_compose == true) {
+                //给返回值加个样式
+                result =  d.compose_project
+                return result
+            } else {
+                result = '-'
+                return result
+            }
+        }
         // 健康状态格式化
         function health_statusFormat(d) {
             result = "";

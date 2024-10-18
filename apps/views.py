@@ -205,6 +205,13 @@ def docker_container_api(request):
                     isrunning = container.attrs['State']['Running']
                     status = container.status
                     ports_data = []
+
+                     # 检查容器是否是通过docker-compose部署的
+                    labels = container.attrs.get('Config', {}).get('Labels', {})
+                    is_docker_compose  = 'com.docker.compose.project' in labels
+                    compose_project = labels.get('com.docker.compose.project', 'N/A') if is_docker_compose else None
+                    compose_service = labels.get('com.docker.compose.service', 'N/A') if is_docker_compose else None
+
                     for i in container.attrs['NetworkSettings']['Ports']:
                         ports = i
                         #该变量用于获取是否有未映射端口，没有为false，有为true
@@ -246,7 +253,21 @@ def docker_container_api(request):
                     time_obj = parser.isoparse(time_str)
                     time_obj += time_offset
                     create_time = time_obj.strftime('%Y-%m-%d %H:%M:%S')
-                    dat = {"id":id,"name":name,"image":image,"isrunning":isrunning,"restart_switch":restart_switch,"restart_count":restart_count,"status":status,"create_time":create_time,"ports_data":ports_data,"health_status":health_status}
+                    dat = {
+                        "id": id,
+                        "name": name,
+                        "image": image,
+                        "isrunning": isrunning,
+                        "restart_switch": restart_switch,
+                        "restart_count": restart_count,
+                        "status": status,
+                        "create_time": create_time,
+                        "ports_data": ports_data,
+                        "health_status": health_status,
+                        "is_docker_compose": is_docker_compose,
+                        "compose_project": compose_project,
+                        "compose_service": compose_service
+                    }
                     # 根据查询关键字返回数据
                     if search_key:
                         if search_key in name:
@@ -852,14 +873,14 @@ def docker_images_api(request):
                 # 获取所有容器的镜像ID
                 container_image_ids = {container.image.id for container in containers}
                 def process_image(image):
+                    image_ids = image.id  # 使用完整的image id
                     image_id = image.short_id
                     image_tags = image.tags
                     image_size = humanize.naturalsize(image.attrs['Size'], binary=True)
                     time_str = image.attrs['Created']
                     time_obj = parser.isoparse(time_str)
                     image_create_time = time_obj.strftime('%Y-%m-%d %H:%M:%S')
-                    image_in_use = image_id in container_image_ids
-
+                    image_in_use = image_ids in container_image_ids
                     for tag in image_tags:
                         dat = {
                             "image_id": image_id,
@@ -957,6 +978,8 @@ def docker_images_api(request):
             code = 2
             if e.status_code == 409 and "image has dependent child images" in str(e):
                 msg = "删除失败：存在多个依赖的子镜像。"
+            elif e.status_code == 409 and "image is being used by running container" in str(e):
+                msg = "删除失败：容器正在运行,请先停止容器。"
             else:
                 msg = "删除报错：%s" % e
         result = {'code': code, 'msg': msg}

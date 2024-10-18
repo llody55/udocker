@@ -11,7 +11,7 @@ permissions:
 
 env:
   PYTHON_VERSION: '3.9.13'
-  RELEASE_VERSION: 'v1.1.4' # 发布版本
+  RELEASE_VERSION: 'v1.1.5' # 发布版本
   DOCKER_IMAGE_NAME: 'udocker'
   DOCKER_NAMESPACE: 'llody'
   DOCKER_REGISTRY_HUAWEI: 'swr.cn-southwest-2.myhuaweicloud.com'
@@ -116,8 +116,8 @@ jobs:
           body: |
             - **新版本发布**: ${{ env.RELEASE_VERSION }}
             - **更新内容**: 
-              - * 容器管理 - 新增镜像回滚功能，可以对容器正在使用的镜像进行镜像回滚，切换镜像并重新创建容器。
-              - * 镜像仓库 - 新增dockerhub代理,(docker.llody.cn)。
+              - * 容器管理 - 修复镜像管理占用判断逻辑。
+              - * 镜像仓库 - 新增compose应用判断。
               - * 页面优化。
               - * 流水线优化 - 新增同步国内镜像仓库镜像。
           draft: false
