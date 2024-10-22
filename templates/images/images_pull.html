@@ -124,7 +124,7 @@
                     return;
                 }
 
-                console.log("镜像:" + imageName + "地址：" + registryUrl )
+                //console.log("镜像:" + imageName + "地址：" + registryUrl )
                 output.innerHTML = ''; // 清空之前的日志
                 logEntries = {}; // 清空之前的日志条目
                 socket.send(JSON.stringify({
@@ -136,76 +136,78 @@
 
             socket.onmessage = function(e) {
                 var data = JSON.parse(e.data);
-                var message = data.message;
-
-                if (message.id) {
-                    if (!logEntries[message.id]) {
-                        // 创建新的日志条目
-                        var logEntry = document.createElement('div');
-                        logEntry.classList.add('log-entry');
-                        logEntry.setAttribute('id', 'log-' + message.id);
-
-                        var status = document.createElement('p');
-                        status.innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
-                        logEntry.appendChild(status);
-
-                        if (message.progressDetail && message.progressDetail.total > 0) {
-                            var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
-                            var progressBarContainer = document.createElement('div');
-                            progressBarContainer.classList.add('layui-progress', 'progress-container');
-                            progressBarContainer.setAttribute('lay-showPercent', 'true');
-
-                            var progressBar = document.createElement('div');
-                            progressBar.classList.add('layui-progress-bar');
-                            progressBar.setAttribute('lay-percent', progress + '%');
-                            progressBar.style.width = progress + '%';
-
-                            progressBarContainer.appendChild(progressBar);
-                            logEntry.appendChild(progressBarContainer);
-                        }
-
-                        output.appendChild(logEntry);
-                        logEntries[message.id] = logEntry;
-                        layui.element.init(); // 重新初始化进度条
-                    } else {
-                        // 更新现有的日志条目
-                        var existingEntry = logEntries[message.id];
-                        existingEntry.querySelector('p').innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
-                        if (message.progressDetail && message.progressDetail.total > 0) {
-                            var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
-                            var progressBar = existingEntry.querySelector('.layui-progress-bar');
-                            if (!progressBar) {
-                                // 如果进度条不存在，创建新的进度条
+            
+                if (data.error) {
+                    // 处理错误信息
+                    var errorStatus = document.createElement('div');
+                    errorStatus.classList.add('log-entry', 'layui-bg-red'); // 添加红色背景表示错误
+                    errorStatus.innerHTML = '<p><strong>Error:</strong> ' + data.error + '</p>';
+                    output.appendChild(errorStatus);
+                } else if (data.message) {
+                    var message = data.message;
+                    
+                    if (message.id) {
+                        if (!logEntries[message.id]) {
+                            // 创建新的日志条目
+                            var logEntry = document.createElement('div');
+                            logEntry.classList.add('log-entry');
+                            logEntry.setAttribute('id', 'log-' + message.id);
+            
+                            var status = document.createElement('p');
+                            status.innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                            logEntry.appendChild(status);
+            
+                            if (message.progressDetail && message.progressDetail.total > 0) {
+                                var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
                                 var progressBarContainer = document.createElement('div');
                                 progressBarContainer.classList.add('layui-progress', 'progress-container');
                                 progressBarContainer.setAttribute('lay-showPercent', 'true');
-
-                                progressBar = document.createElement('div');
+            
+                                var progressBar = document.createElement('div');
                                 progressBar.classList.add('layui-progress-bar');
                                 progressBar.setAttribute('lay-percent', progress + '%');
                                 progressBar.style.width = progress + '%';
-
+            
                                 progressBarContainer.appendChild(progressBar);
-                                existingEntry.appendChild(progressBarContainer);
-                            } else {
-                                progressBar.setAttribute('lay-percent', progress + '%');
-                                progressBar.style.width = progress + '%';
+                                logEntry.appendChild(progressBarContainer);
                             }
+            
+                            output.appendChild(logEntry);
+                            logEntries[message.id] = logEntry;
                             layui.element.init(); // 重新初始化进度条
+                        } else {
+                            // 更新现有的日志条目
+                            var existingEntry = logEntries[message.id];
+                            existingEntry.querySelector('p').innerHTML = '<strong>ID:</strong> ' + message.id + ' <strong>Status:</strong> ' + message.status;
+                            if (message.progressDetail && message.progressDetail.total > 0) {
+                                var progress = (message.progressDetail.current / message.progressDetail.total * 100).toFixed(2);
+                                var progressBar = existingEntry.querySelector('.layui-progress-bar');
+                                if (!progressBar) {
+                                    var progressBarContainer = document.createElement('div');
+                                    progressBarContainer.classList.add('layui-progress', 'progress-container');
+                                    progressBarContainer.setAttribute('lay-showPercent', 'true');
+            
+                                    progressBar = document.createElement('div');
+                                    progressBar.classList.add('layui-progress-bar');
+                                    progressBar.setAttribute('lay-percent', progress + '%');
+                                    progressBar.style.width = progress + '%';
+            
+                                    progressBarContainer.appendChild(progressBar);
+                                    existingEntry.appendChild(progressBarContainer);
+                                } else {
+                                    progressBar.setAttribute('lay-percent', progress + '%');
+                                    progressBar.style.width = progress + '%';
+                                }
+                                layui.element.init(); // 重新初始化进度条
+                            }
                         }
-                    }
-                } else {
-                    // 处理最终结果的情况
-                    var finalStatus = document.createElement('div');
-                    finalStatus.classList.add('log-entry');
-                    finalStatus.innerHTML = '<p><strong>Final Status:</strong> ' + message.status + '</p>';
-                    if (message.error) {
-                        finalStatus.innerHTML += '<p><strong>Error:</strong> ' + message.error + '</p>';
-                        finalStatus.classList.add('layui-bg-red'); // 添加红色背景表示错误
                     } else {
-                        finalStatus.classList.add('layui-bg-green'); // 添加绿色背景表示成功
+                        // 处理没有ID的消息
+                        var noIdStatus = document.createElement('div');
+                        noIdStatus.classList.add('log-entry');
+                        noIdStatus.innerHTML = '<p><strong>Status:</strong> ' + message.status + '</p>';
+                        output.appendChild(noIdStatus);
                     }
-                    output.appendChild(finalStatus);
                 }
             };
 

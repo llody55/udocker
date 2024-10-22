@@ -8,15 +8,17 @@ def version(request):
 # 检查GitHub中版本
 def get_latest_github_version(owner, repo):
     url = f'https://api.github.com/repos/{owner}/{repo}/tags'
-    response = requests.get(url)
-    if response.status_code == 200:
-        tags = response.json()
-        if tags:
-            latest_tag = tags[0]['name']
-            # 去掉前缀 'v'
-            if latest_tag.startswith('v'):
-                latest_tag = latest_tag[1:]
-            return latest_tag
+    try:
+        response = requests.get(url, timeout=10)  # 加入超时设置
+        if response.status_code == 200:
+            tags = response.json()
+            if tags:
+                latest_tag = tags[0]['name']
+                if latest_tag.startswith('v'):
+                    latest_tag = latest_tag[1:]
+                return latest_tag
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching version from GitHub: {e}")
     return None
 
 def latest_version(request):

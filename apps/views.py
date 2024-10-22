@@ -1034,6 +1034,8 @@ def docker_images_api(request):
             code = 1
             if e.status_code == 401 and "unauthorized: authentication required" in str(e):
                 msg = f"API错误：未授权失败，无法拉取！"
+            elif e.status_code == 404 and "Not Found tag" in str(e):
+                msg = f"API错误：未找到latest版本，请补全镜像版本！"
             else:
                 msg = f"API错误：{e.explanation}"
         except ConnectionError:
@@ -1223,7 +1225,7 @@ def docker_rollback_api(request):
             if not success:
                 result = {'code': 1, 'msg': '无法连接到Docker'}
                 return JsonResponse(result)
-             # 获取指定容器
+            # 获取指定容器
             container = client.containers.get(rollback_name)
             # 获取当前容器正在使用的镜像
             current_image_name = container.attrs['Config']['Image']
@@ -1728,6 +1730,8 @@ def docker_event_api(request):
                         event_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(event_dict.get('time')))
                         dat = {"id":id,"container_name":container_name,"status":status,"froms":froms,"event_time":event_time}
                         data.append(dat)
+                # 倒序排列事件
+                data.sort(key=lambda x: x['event_time'], reverse=True)  # 按照事件时间倒序排序
             events.close()
             code = 0
             msg = "数据获取成功"
