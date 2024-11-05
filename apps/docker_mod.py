@@ -1,4 +1,4 @@
-import psutil
+import os
 import psutil
 import docker
 from docker.errors import DockerException, TLSParameterError,APIError
@@ -88,3 +88,13 @@ def get_disk_usage():
     total_disk_space = psutil.disk_usage('/').total
     used_disk_space = psutil.disk_usage('/').used
     return total_disk_space, total_disk_space - used_disk_space
+
+# 统计容器目录占用
+def get_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size
+

@@ -11,7 +11,7 @@ permissions:
 
 env:
   PYTHON_VERSION: '3.9.13'
-  RELEASE_VERSION: 'v1.1.5' # 发布版本
+  RELEASE_VERSION: 'v1.1.6' # 发布版本
   DOCKER_IMAGE_NAME: 'udocker'
   DOCKER_NAMESPACE: 'llody'
   DOCKER_REGISTRY_HUAWEI: 'swr.cn-southwest-2.myhuaweicloud.com'
@@ -116,10 +116,11 @@ jobs:
           body: |
             - **新版本发布**: ${{ env.RELEASE_VERSION }}
             - **更新内容**: 
-              - * 容器管理 - 修复镜像管理占用判断逻辑。
-              - * 镜像仓库 - 新增compose应用判断。
+              - * 容器管理 - 修复查看容器详情时，耗时长的问题。
+              - * 容器管理 - 优化因为镜像过长而被隐藏的问题，采用tips方式进行展示，单击镜像字段即可复制完整镜像地址。
+              - * 容器管理 - 新增详情页，磁盘统计功能，通过挂载容器路径，即可实时统计容器的磁盘占用情况。
               - * 页面优化。
-              - * 流水线优化 - 新增同步国内镜像仓库镜像。
+              - * 其他     - 修复因网络失败导致图标失效问题。
           draft: false
           prerelease: false
           files: release/release.tar.gz

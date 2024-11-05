@@ -29,6 +29,15 @@
     .layui-table th {
         border-top: 1px solid #e6e6e6 !important;
     }
+    .vol-cell {
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 200px; /* 根据需要调整 */
+        display: inline-block;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 {% block context %}
@@ -105,7 +114,9 @@
                 , { field: 'name', title: '名称', sort: true}
                 , { field: 'vol_in_use', title: '占用情况', sort: true ,templet: vol_in_useFormat}
                 , { field: 'driver', title: '驱动', sort: true } //hide:true 隐藏某一列的信息
-                , { field: 'mountpoint', title: '挂载点', sort: true }
+                , { field: 'mountpoint', title: '挂载点', sort: true ,templet: function(d) {
+                    return '<span class="vol-cell" data-vol="'+ d.mountpoint +'">' + d.mountpoint + '</span>';
+                },}
                 , { field: 'createdAt', title: '创建时间', sort: true }
                 , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 250, align: "center" }
             ]],
@@ -254,6 +265,47 @@
                     url: "{% url 'docker_volumes_api' %}",
                     page: { curr: currPage }//刷新当前页码
                 });
+        });
+
+        // 镜像字段的TIPS功能
+
+        $(document).on('mouseenter', '.vol-cell', function() {
+            var vol = $(this).data('vol');
+            layer.tips(vol, this, {
+                tips: [1, '#23292e'],
+                time: 0, // 鼠标悬浮时，layer不会自动消失
+                area: ['auto', 'auto'] // 设置宽度为 'auto' 可以根据内容自动调整
+            });
+        });
+        
+        $(document).on('mouseleave', '.vol-cell', function() {
+            layer.closeAll('tips'); // 关闭所有的提示
+        });
+        // 点击镜像字段，即可复制
+        $(document).on('click', '.vol-cell', function() {
+            var vol = $(this).data('vol');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(vol).then(function() {
+                    layer.msg('复制成功', {icon: 1, time: 1000}); // 1表示成功图标，1000表示1秒后关闭
+                }, function(err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000}); // 2表示失败图标
+                });
+            } else {
+                // 处理不支持 clipboard API 的浏览器
+                var textarea = document.createElement("textarea");
+                textarea.value = vol;
+                textarea.style.position = "fixed";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    layer.msg('复制成功', {icon: 1, time: 1000});
+                } catch (err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000});
+                }
+                document.body.removeChild(textarea);
+            }
         });
 
         // 监听搜索事件

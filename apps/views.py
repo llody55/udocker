@@ -425,195 +425,313 @@ def docker_container_api(request):
         return JsonResponse(result)
 
 # docker容器详情信息API
+# @csrf_exempt
+# @xframe_options_exempt
+# @login_required
+# def docker_container_info(request):
+#     name = request.GET.get("name")
+#     print("容器名称:",name)
+#     connect = {}  # 初始化连接字典
+#     try:
+#         success, client = docker_mod.connect_to_docker()
+#         if success:
+#             containers = client.containers.list(all=True)
+#             for container in containers:
+#                 if name == container.name:
+#                     #对象ID，截断为12个字符
+#                     id = container.short_id
+#                     # 容器完整ID
+#                     conid = container.id
+#                     #name
+#                     name = container.name
+#                     #运行状态
+#                     isrunning = container.attrs['State']['Running']
+#                     #运行状态
+#                     status = container.status
+#                     #创建时间
+#                     create_time = container.attrs['Created']
+#                     #运行时间
+#                     start_time = container.attrs['State']['StartedAt']
+
+#                     # 系统时间
+#                     system_time = client.info()['SystemTime']
+
+#                     #容器详细信息
+#                     #image
+#                     image = container.attrs['Config']['Image']
+#                     #端口
+#                     ports_data = []
+#                     # 当端口未映射时，设置默认值为none
+#                     host_port = None
+#                     for i in container.attrs['NetworkSettings']['Ports']:
+#                         ports = i
+#                         #该变量用于获取是否有未映射端口，没有为false，有为true
+#                         isport = False
+#                         if not container.attrs['NetworkSettings']['Ports'][i]:
+#                             ports = i
+#                             isport = True
+#                         else:
+#                             host_ip = container.attrs['NetworkSettings']['Ports'][i][0]['HostIp']
+#                             host_port = container.attrs['NetworkSettings']['Ports'][i][0]['HostPort']
+#                         dat = {"ports":ports,"isport":isport,"host_port":host_port}
+#                         ports_data.append(dat)
+#                     #CMD命令
+#                     cmd_ops = container.attrs['Config']['Cmd']
+#                     print("CMD命令:",cmd_ops)
+#                     #Entrypoint
+#                     entrypoint = container.attrs['Config']['Entrypoint']
+#                     #环境变量
+#                     env_ops = container.attrs['Config']['Env']
+#                     #标签
+#                     labels_data = []
+#                     for key,value in container.labels.items():
+#                         labels_ops = "%s=%s" %(key,value)
+#                         dat = {"labels_ops":labels_ops}
+#                         labels_data.append(dat)
+#                     restart_olicy = container.attrs['HostConfig']['RestartPolicy']['Name']
+
+                    
+#                     # 获取容器目录大小
+#                     container_config_path = f"/var/lib/docker/containers/{conid}"
+#                     container_config_size = docker_mod.get_directory_size(container_config_path)
+#                     container_log_size = docker_mod.convert_bytes(container_config_size)
+                    
+#                     usage_volumes = "None"
+
+#                     #容器网络
+#                     networks = []
+#                     network_settings = container.attrs['NetworkSettings']['Networks']
+#                     for net_name, net_info in network_settings.items():
+#                         ip_address = net_info['IPAddress']
+#                         gateway = net_info['Gateway']
+#                         mac_address = net_info['MacAddress']
+#                         dat = {"net_name":net_name,"ip_address":ip_address,"gateway":gateway,"mac_address":mac_address}
+#                         networks.append(dat)
+
+#                     #当前容器资源占用情况
+#                     stats = container.stats(stream=False)
+#                     #cpu_percent = stats['cpu_stats']['cpu_usage']['total_usage'] / stats['cpu_stats']['system_cpu_usage'] * 100
+#                     if 'cpu_stats' in stats and 'cpu_usage' in stats['cpu_stats']:
+#                         total_usage = stats['cpu_stats']['cpu_usage']['total_usage']
+#                         system_cpu_usage = stats['cpu_stats'].get('system_cpu_usage', 0)
+
+#                         if system_cpu_usage != 0:
+#                             cpu_percent = total_usage / system_cpu_usage * 100
+#                         else:
+#                             cpu_percent = 0
+#                     else:
+#                         cpu_percent = 0
+#                     #mem_usage = stats['memory_stats']['usage']
+#                     if 'memory_stats' in stats and 'usage' in stats['memory_stats']:
+#                         mem_usage = stats['memory_stats']['usage']
+#                     else:
+#                         mem_usage = 0
+#                     #mem_limit = stats['memory_stats']['limit']
+#                     if 'memory_stats' in stats and 'limit' in stats['memory_stats']:
+#                         mem_limit = stats['memory_stats']['limit']
+#                     else:
+#                         mem_limit = 0
+#                     #mem_percent = mem_usage / mem_limit * 100
+#                     if mem_limit > 0:
+#                         mem_percent = mem_usage / mem_limit * 100
+#                     else:
+#                         mem_percent = 0
+#                     cpu_ops = "{:.2f}%".format(cpu_percent)
+#                     mem_ops = "{:.2f}%".format(mem_percent)
+#                     print("Container {} CPU使用率: {:.2f}%".format(container.name, cpu_percent))
+#                     print("Container {} 内存使用率: {:.2f}%".format(container.name, mem_percent))
+#                     # 获取容器的磁盘使用情况
+
+#                     # if "storage_stats" in stats and "usage" in stats["storage_stats"]:
+#                     #     usage_volumes =docker_mod.convert_bytes(stats["storage_stats"]["usage"])
+#                     # else:
+#                     #     usage_volumes = "None"
+#                     #     print("- 未使用磁盘")
+                    
+#                     # 获取容器的网络统计信息
+#                     if "networks" in stats:
+#                         networks_stats = stats["networks"]
+#                         for network_name, network_stat in networks_stats.items():
+#                             # 输出网络名称
+#                             print("- 网络名称: {}".format(network_name))
+                                        
+#                             # 输出网络的流量和包数
+#                             rx_bytes = network_stat.get("rx_bytes", 0)
+#                             tx_bytes = network_stat.get("tx_bytes", 0)
+#                             rx_packets = network_stat.get("rx_packets", 0)
+#                             tx_packets = network_stat.get("tx_packets", 0)
+#                             rx_bytes_str = docker_mod.convert_bytes(rx_bytes)
+#                             tx_bytes_str = docker_mod.convert_bytes(tx_bytes)
+#                             rx_tx_bytes = "%s/%s" %(rx_bytes_str,tx_bytes_str)  #统计为总数，并非实时网络
+#                             print("  - 流入字节数: {}".format(rx_bytes))
+#                             print("  - 流出字节数: {}".format(tx_bytes))
+#                             print("  - 流入包数: {}".format(rx_packets))
+#                             print("  - 流出包数: {}".format(tx_packets))
+#                     else:
+#                         rx_tx_bytes = "N/A"
+#                         print("- 未连接到网络")
+
+#                     # 更新连接字典
+#                     connect["rx_tx_bytes"] = rx_tx_bytes
+
+                    
+#                     if container.status == 'running':
+#                         cmd = 'ifconfig eth0 | grep "RX packets\|RX bytes\|TX packets\|TX bytes" | awk \'{print $1 ": " $5}\''
+#                         result = container.exec_run(cmd)
+#                         output = result.output.decode('utf-8')
+#                         lines = output.strip().split('\n')
+#                         rx_packets = tx_packets = rx_bytes = tx_bytes = 0
+#                         for line in lines:
+#                             if 'RX packets' in line:
+#                                 rx_packets = int(line.split(':')[1].strip())
+#                             elif 'TX packets' in line:
+#                                 tx_packets = int(line.split(':')[1].strip())
+#                             elif 'RX bytes' in line:
+#                                 rx_bytes = int(line.split(':')[1].strip())
+#                             elif 'TX bytes' in line:
+#                                 tx_bytes = int(line.split(':')[1].strip())
+#                         print(f'rx_packets={rx_packets}, tx_packets={tx_packets}, rx_bytes={rx_bytes}, tx_bytes={tx_bytes}')
+#                         # 处理命令执行结果
+#                     else:
+#                         # 容器未运行的处理逻辑
+#                         print("容器未运行，无法执行命令")
+#         else:
+#             print("无法连接到Docker守护进程。")
+#     except docker.errors.DockerException as e:
+#         # 处理连接异常，你可以根据需要添加相关逻辑
+#         print("连接 Docker 服务器失败:", e)
+#         # 返回相关错误信息或页面
+#         return HttpResponse("连接 Docker 服务器失败")
+#     except Exception as e:
+#         print(e)
+#         traceback.print_exc()
+#         print("详细错误:", e)
+#         return JsonResponse({"status": 500, 'msg': '出现未知错误，请登录排查日志信息，或者联系管理员。'})  # 返回错误的响应或适当的处理
+#     connect = {"id":id,"name":name,"isrunning":isrunning,"status":status,"create_time":create_time,"start_time":start_time,"system_time":system_time,"image":image,
+#                "ports_data":ports_data,"cmd_ops":cmd_ops,"entrypoint":entrypoint,"env_ops":env_ops,"labels_data":labels_data,"restart_olicy":restart_olicy,
+#                "container_log_size":container_log_size,"networks":networks,
+#                "cpu_ops":cpu_ops,"mem_ops":mem_ops,"rx_tx_bytes":rx_tx_bytes,"usage_volumes":usage_volumes}
+#     return render(request, 'container/docker_container_info.html',{"connect":connect})
+
 @csrf_exempt
 @xframe_options_exempt
 @login_required
 def docker_container_info(request):
     name = request.GET.get("name")
-    print("容器名称:",name)
+    
     connect = {}  # 初始化连接字典
     try:
         success, client = docker_mod.connect_to_docker()
-        if success:
-            containers = client.containers.list(all=True)
-            for container in containers:
-                if name == container.name:
-                    #对象ID，截断为12个字符
-                    id = container.short_id
-                    #name
-                    name = container.name
-                    #运行状态
-                    isrunning = container.attrs['State']['Running']
-                    #运行状态
-                    status = container.status
-                    #创建时间
-                    create_time = container.attrs['Created']
-                    #运行时间
-                    start_time = container.attrs['State']['StartedAt']
-
-                    # 系统时间
-                    system_time = client.info()['SystemTime']
-
-                    #容器详细信息
-                    #image
-                    image = container.attrs['Config']['Image']
-                    #端口
-                    ports_data = []
-                    # 当端口未映射时，设置默认值为none
-                    host_port = None
-                    for i in container.attrs['NetworkSettings']['Ports']:
-                        ports = i
-                        #该变量用于获取是否有未映射端口，没有为false，有为true
-                        isport = False
-                        if not container.attrs['NetworkSettings']['Ports'][i]:
-                            ports = i
-                            isport = True
-                        else:
-                            host_ip = container.attrs['NetworkSettings']['Ports'][i][0]['HostIp']
-                            host_port = container.attrs['NetworkSettings']['Ports'][i][0]['HostPort']
-                        dat = {"ports":ports,"isport":isport,"host_port":host_port}
-                        ports_data.append(dat)
-                    #CMD命令
-                    cmd_ops = container.attrs['Config']['Cmd']
-                    print("CMD命令:",cmd_ops)
-                    #Entrypoint
-                    entrypoint = container.attrs['Config']['Entrypoint']
-                    #环境变量
-                    env_ops = container.attrs['Config']['Env']
-                    #标签
-                    labels_data = []
-                    for key,value in container.labels.items():
-                        labels_ops = "%s=%s" %(key,value)
-                        dat = {"labels_ops":labels_ops}
-                        labels_data.append(dat)
-                    restart_olicy = container.attrs['HostConfig']['RestartPolicy']['Name']
-
-                    #容器挂载
-                    mountss = []
-                    if not container.attrs['Mounts']:
-                        mounts_Source = "None"
-                        mounts_Destination = "None"
-                    else:
-                        for mounts in container.attrs['Mounts']:
-                            mounts_Source = mounts['Source']
-                            mounts_Destination = mounts['Destination']
-                            dat = {"mounts_Source":mounts_Source,"mounts_Destination":mounts_Destination}
-                            mountss.append(dat)
-                    
-                    #容器网络
-                    networks = []
-                    network_settings = container.attrs['NetworkSettings']['Networks']
-                    for net_name, net_info in network_settings.items():
-                        ip_address = net_info['IPAddress']
-                        gateway = net_info['Gateway']
-                        mac_address = net_info['MacAddress']
-                        dat = {"net_name":net_name,"ip_address":ip_address,"gateway":gateway,"mac_address":mac_address}
-                        networks.append(dat)
-
-                    #当前容器资源占用情况
-                    stats = container.stats(stream=False)
-                    #cpu_percent = stats['cpu_stats']['cpu_usage']['total_usage'] / stats['cpu_stats']['system_cpu_usage'] * 100
-                    if 'cpu_stats' in stats and 'cpu_usage' in stats['cpu_stats']:
-                        total_usage = stats['cpu_stats']['cpu_usage']['total_usage']
-                        system_cpu_usage = stats['cpu_stats'].get('system_cpu_usage', 0)
-
-                        if system_cpu_usage != 0:
-                            cpu_percent = total_usage / system_cpu_usage * 100
-                        else:
-                            cpu_percent = 0
-                    else:
-                        cpu_percent = 0
-                    #mem_usage = stats['memory_stats']['usage']
-                    if 'memory_stats' in stats and 'usage' in stats['memory_stats']:
-                        mem_usage = stats['memory_stats']['usage']
-                    else:
-                        mem_usage = 0
-                    #mem_limit = stats['memory_stats']['limit']
-                    if 'memory_stats' in stats and 'limit' in stats['memory_stats']:
-                        mem_limit = stats['memory_stats']['limit']
-                    else:
-                        mem_limit = 0
-                    #mem_percent = mem_usage / mem_limit * 100
-                    if mem_limit > 0:
-                        mem_percent = mem_usage / mem_limit * 100
-                    else:
-                        mem_percent = 0
-                    cpu_ops = "{:.2f}%".format(cpu_percent)
-                    mem_ops = "{:.2f}%".format(mem_percent)
-                    print("Container {} CPU使用率: {:.2f}%".format(container.name, cpu_percent))
-                    print("Container {} 内存使用率: {:.2f}%".format(container.name, mem_percent))
-                    # 获取容器的磁盘使用情况
-
-                    if "storage_stats" in stats and "usage" in stats["storage_stats"]:
-                        usage_volumes =docker_mod.convert_bytes(stats["storage_stats"]["usage"])
-                    else:
-                        usage_volumes = "None"
-                        print("- 未使用磁盘")
-                    
-                    # 获取容器的网络统计信息
-                    if "networks" in stats:
-                        networks_stats = stats["networks"]
-                        for network_name, network_stat in networks_stats.items():
-                            # 输出网络名称
-                            print("- 网络名称: {}".format(network_name))
-                                        
-                            # 输出网络的流量和包数
-                            rx_bytes = network_stat.get("rx_bytes", 0)
-                            tx_bytes = network_stat.get("tx_bytes", 0)
-                            rx_packets = network_stat.get("rx_packets", 0)
-                            tx_packets = network_stat.get("tx_packets", 0)
-                            rx_bytes_str = docker_mod.convert_bytes(rx_bytes)
-                            tx_bytes_str = docker_mod.convert_bytes(tx_bytes)
-                            rx_tx_bytes = "%s/%s" %(rx_bytes_str,tx_bytes_str)  #统计为总数，并非实时网络
-                            print("  - 流入字节数: {}".format(rx_bytes))
-                            print("  - 流出字节数: {}".format(tx_bytes))
-                            print("  - 流入包数: {}".format(rx_packets))
-                            print("  - 流出包数: {}".format(tx_packets))
-                    else:
-                        rx_tx_bytes = "N/A"
-                        print("- 未连接到网络")
-
-                    # 更新连接字典
-                    connect["rx_tx_bytes"] = rx_tx_bytes
-
-                    
-                    if container.status == 'running':
-                        cmd = 'ifconfig eth0 | grep "RX packets\|RX bytes\|TX packets\|TX bytes" | awk \'{print $1 ": " $5}\''
-                        result = container.exec_run(cmd)
-                        output = result.output.decode('utf-8')
-                        lines = output.strip().split('\n')
-                        rx_packets = tx_packets = rx_bytes = tx_bytes = 0
-                        for line in lines:
-                            if 'RX packets' in line:
-                                rx_packets = int(line.split(':')[1].strip())
-                            elif 'TX packets' in line:
-                                tx_packets = int(line.split(':')[1].strip())
-                            elif 'RX bytes' in line:
-                                rx_bytes = int(line.split(':')[1].strip())
-                            elif 'TX bytes' in line:
-                                tx_bytes = int(line.split(':')[1].strip())
-                        print(f'rx_packets={rx_packets}, tx_packets={tx_packets}, rx_bytes={rx_bytes}, tx_bytes={tx_bytes}')
-                        # 处理命令执行结果
-                    else:
-                        # 容器未运行的处理逻辑
-                        print("容器未运行，无法执行命令")
-        else:
+        if not success:
             print("无法连接到Docker守护进程。")
+            return HttpResponse("无法连接到Docker守护进程。")
+        
+        container = next((c for c in client.containers.list(all=True) if c.name == name), None)
+        if not container:
+            return HttpResponse(f"没有找到名为 {name} 的容器")
+
+        attrs = container.attrs
+        state = attrs['State']
+        network_settings = attrs['NetworkSettings']
+        short_id = container.short_id
+        isrunning = state['Running']
+        create_time = attrs['Created']
+        start_time = state['StartedAt']
+        system_time = client.info()['SystemTime']
+        image = attrs['Config']['Image']
+
+        ports = network_settings['Ports']
+        ports_data = [
+            {
+                "ports": p,
+                "isport": not ports[p],
+                "host_port": ports[p][0]['HostPort'] if ports[p] else None
+            }
+            for p in ports
+        ]
+
+        labels_data = [{"labels_ops": f"{key}={value}"} for key, value in container.labels.items()]
+
+        networks = [
+            {
+                "net_name": net_name,
+                "ip_address": net_info['IPAddress'],
+                "gateway": net_info['Gateway'],
+                "mac_address": net_info['MacAddress']
+            } for net_name, net_info in network_settings['Networks'].items()
+        ]
+
+        cmd_ops = attrs['Config']['Cmd']
+        entrypoint = attrs['Config']['Entrypoint']
+        env_ops = attrs['Config']['Env']
+        restart_policy = attrs['HostConfig']['RestartPolicy']['Name']
+
+        container_config_path = f"/var/lib/docker/containers/{container.id}"
+
+        # 多线程任务定义
+        def get_container_config_size():
+            return docker_mod.get_directory_size(container_config_path)
+
+        def get_cpu_and_memory_usage():
+            stats = container.stats(stream=False)
+            cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
+            system_cpu_usage = stats['cpu_stats'].get('system_cpu_usage', 0)
+            mem_usage = stats['memory_stats']['usage']
+            mem_limit = stats['memory_stats']['limit']
+            cpu_percent = (cpu_usage / system_cpu_usage * 100) if system_cpu_usage else 0
+            mem_percent = (mem_usage / mem_limit * 100) if mem_limit else 0
+            return cpu_percent, mem_percent
+
+        def get_network_stats():
+            stats = container.stats(stream=False)
+            rx_tx_bytes = next((f"{docker_mod.convert_bytes(ns.get('rx_bytes', 0))}/{docker_mod.convert_bytes(ns.get('tx_bytes', 0))}"
+                                for _, ns in stats.get("networks", {}).items()), "N/A")
+            return rx_tx_bytes
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_container_config_size = executor.submit(get_container_config_size)
+            future_cpu_and_memory_usage = executor.submit(get_cpu_and_memory_usage)
+            future_network_stats = executor.submit(get_network_stats)
+
+            container_config_size = future_container_config_size.result()
+            cpu_percent, mem_percent = future_cpu_and_memory_usage.result()
+            rx_tx_bytes = future_network_stats.result()
+
+        container_log_size = docker_mod.convert_bytes(container_config_size)     
+        
+        connect = {
+            "id": short_id,
+            "name": name,
+            "isrunning": isrunning,
+            "status": container.status,
+            "create_time": create_time,
+            "start_time": start_time,
+            "system_time": system_time,
+            "image": image,
+            "ports_data": ports_data,
+            "cmd_ops": cmd_ops,
+            "entrypoint": entrypoint,
+            "env_ops": env_ops,
+            "labels_data": labels_data,
+            "restart_policy": restart_policy,
+            "container_log_size": container_log_size,
+            "networks": networks,
+            "cpu_ops": f"{cpu_percent:.2f}%",
+            "mem_ops": f"{mem_percent:.2f}%",
+            "rx_tx_bytes": rx_tx_bytes,
+            "usage_volumes": "None"
+        }
+
     except docker.errors.DockerException as e:
-        # 处理连接异常，你可以根据需要添加相关逻辑
         print("连接 Docker 服务器失败:", e)
-        # 返回相关错误信息或页面
         return HttpResponse("连接 Docker 服务器失败")
     except Exception as e:
         print(e)
         traceback.print_exc()
         print("详细错误:", e)
         return JsonResponse({"status": 500, 'msg': '出现未知错误，请登录排查日志信息，或者联系管理员。'})  # 返回错误的响应或适当的处理
-    connect = {"id":id,"name":name,"isrunning":isrunning,"status":status,"create_time":create_time,"start_time":start_time,"system_time":system_time,"image":image,
-               "ports_data":ports_data,"cmd_ops":cmd_ops,"entrypoint":entrypoint,"env_ops":env_ops,"labels_data":labels_data,"restart_olicy":restart_olicy,
-               "mountss":mountss,"networks":networks,
-               "cpu_ops":cpu_ops,"mem_ops":mem_ops,"rx_tx_bytes":rx_tx_bytes,"usage_volumes":usage_volumes}
-    return render(request, 'container/docker_container_info.html',{"connect":connect})
+    
+    return render(request, 'container/docker_container_info.html', {'connect': connect})
 
 @csrf_exempt
 @login_required

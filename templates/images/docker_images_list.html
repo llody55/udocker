@@ -29,6 +29,15 @@
     .layui-table th {
         border-top: 1px solid #e6e6e6 !important;
     }
+    .image-cell {
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 200px; /* 根据需要调整 */
+        display: inline-block;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 {% block context %}
@@ -109,7 +118,9 @@
             , cols: [[ //表头
                 { type: 'checkbox', fixed: 'left' }   //全选按钮
                 , { field: 'image_id', title: '镜像ID'}
-                , { field: 'image_tag', title: '镜像 Tag<i class="layui-icon layui-icon-survey layui-font-14" title="none的无tag镜像将不会显示" style="margin-left: 5px;"></i>'} //hide:true 隐藏某一列的信息
+                , { field: 'image_tag', title: '镜像 Tag<i class="layui-icon layui-icon-survey layui-font-14" title="none的无tag镜像将不会显示" style="margin-left: 5px;"></i>',templet: function(d) {
+                    return '<span class="image-cell" data-image="'+ d.image_tag +'">' + d.image_tag + '</span>';
+                },}
                 , { field: 'image_in_use', title: '占用情况', sort: true ,templet: image_in_useFormat}
                 , { field: 'image_size', title: '镜像大小', sort: true }
                 , { field: 'image_create_time', title: '创建时间', sort: true }
@@ -296,6 +307,47 @@
                     url: "{% url 'docker_images_api' %}",
                     page: { curr: currPage }//刷新当前页码
                 });
+        });
+
+        // 镜像字段的TIPS功能
+
+        $(document).on('mouseenter', '.image-cell', function() {
+            var image = $(this).data('image');
+            layer.tips(image, this, {
+                tips: [1, '#23292e'],
+                time: 0, // 鼠标悬浮时，layer不会自动消失
+                area: ['auto', 'auto'] // 设置宽度为 'auto' 可以根据内容自动调整
+            });
+        });
+        
+        $(document).on('mouseleave', '.image-cell', function() {
+            layer.closeAll('tips'); // 关闭所有的提示
+        });
+        // 点击镜像字段，即可复制
+        $(document).on('click', '.image-cell', function() {
+            var image = $(this).data('image');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(image).then(function() {
+                    layer.msg('复制成功', {icon: 1, time: 1000}); // 1表示成功图标，1000表示1秒后关闭
+                }, function(err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000}); // 2表示失败图标
+                });
+            } else {
+                // 处理不支持 clipboard API 的浏览器
+                var textarea = document.createElement("textarea");
+                textarea.value = image;
+                textarea.style.position = "fixed";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    layer.msg('复制成功', {icon: 1, time: 1000});
+                } catch (err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000});
+                }
+                document.body.removeChild(textarea);
+            }
         });
 
         // 监听搜索事件

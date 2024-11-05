@@ -29,6 +29,15 @@
     .layui-table th {
         border-top: 1px solid #e6e6e6 !important;
     }
+    .image-cell {
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 200px; /* 根据需要调整 */
+        display: inline-block;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 {% block context %}
@@ -129,7 +138,9 @@
                 , { field: 'id', title: translations.containerId, sort: true ,hide:true}
                 , { field: 'name', title: translations.containerName +'<i class="layui-icon layui-icon-tips layui-font-14" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', fieldTitle: '容器名称', hide: 0, sort: true, edit: 'text' } //hide:true 隐藏某一列的信息,edit:'text' 表示开启了编辑
                 , { field: 'compose_project', title:"compose", sort: true,templet: composeFormat}
-                , { field: 'image', title: translations.containerImage, sort: true}
+                , { field: 'image', title: translations.containerImage, sort: true,templet: function(d) {
+                    return '<span class="image-cell" data-image="'+ d.image +'">' + d.image + '</span>';
+                },}
                 //, { field: 'isrunning', title: '就绪状态', width: 100, templet: isrunningFormat }
                 , { field: 'health_status', title: translations.healthCheck +'<i class="layui-icon layui-icon-survey layui-font-14" title="只标记容器健康状态" style="margin-left: 5px;"></i>', width: 110, templet: health_statusFormat }
                 , { field: 'status', title: translations.runningStatus, width: 100, templet: statusFormat }
@@ -696,6 +707,47 @@
 
         // 设置自动刷新，每隔5秒刷新一次
         //setInterval(refreshTable, 5000);
+        
+        // 镜像字段的TIPS功能
+
+        $(document).on('mouseenter', '.image-cell', function() {
+            var image = $(this).data('image');
+            layer.tips(image, this, {
+                tips: [1, '#23292e'],
+                time: 0, // 鼠标悬浮时，layer不会自动消失
+                area: ['auto', 'auto'] // 设置宽度为 'auto' 可以根据内容自动调整
+            });
+        });
+        
+        $(document).on('mouseleave', '.image-cell', function() {
+            layer.closeAll('tips'); // 关闭所有的提示
+        });
+        // 点击镜像字段，即可复制
+        $(document).on('click', '.image-cell', function() {
+            var image = $(this).data('image');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(image).then(function() {
+                    layer.msg('复制成功', {icon: 1, time: 1000}); // 1表示成功图标，1000表示1秒后关闭
+                }, function(err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000}); // 2表示失败图标
+                });
+            } else {
+                // 处理不支持 clipboard API 的浏览器
+                var textarea = document.createElement("textarea");
+                textarea.value = image;
+                textarea.style.position = "fixed";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    layer.msg('复制成功', {icon: 1, time: 1000});
+                } catch (err) {
+                    layer.msg('复制失败', {icon: 2, time: 1000});
+                }
+                document.body.removeChild(textarea);
+            }
+        });
 
         // 监听搜索事件
         $(document).on('click', '#searchBtn', function () {
