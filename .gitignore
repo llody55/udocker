@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.trae
 # Distribution / packaging
 .Python
 .vscode
