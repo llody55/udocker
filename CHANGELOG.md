@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/llody55/udocker/compare/v1.1.6...HEAD)
 
-## [1.1.7 ](https://github.com/llody55/udocker/compare/v1.1.5...v1.1.6)- 2026-04-08
+## [1.1.8 ](https://github.com/llody55/udocker/compare/v1.1.5...v1.1.6)- 2026-04-09
+
+### Changed
+
+- 容器终端 - 优化容器空格键被锁定的问题。
+- 容器终端 - 优化容器的终端提示符全屏模式下被遮挡问题。
+- 其他 - 优化部分提示信息。
+
+## [1.1.7](https://github.com/llody55/udocker/compare/v1.1.5...v1.1.6) - 2026-04-08
 
 ### Changed
 
