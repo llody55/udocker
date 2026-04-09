@@ -107,7 +107,7 @@ jobs:
           mv release.tar.gz release/
 
       - name: Upload release artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-archive
           path: release/release.tar.gz
