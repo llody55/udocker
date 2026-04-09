@@ -32,9 +32,11 @@ ALLOWED_HOSTS = ['*']
 #CSRF_TRUSTED_ORIGINS = ['https://add.llody.top']
 
 # Application definition
-VERSION = (1, 1, 6)
+# 从VERSION文件读取版本号
+with open(os.path.join(BASE_DIR, 'VERSION'), 'r') as f:
+    VERSION_STR = f.read().strip()
 
-VERSION_STR = '.'.join(map(str, VERSION))
+VERSION = tuple(map(int, VERSION_STR.split('.')))
  
 INSTALLED_APPS = [
     'django.contrib.admin',

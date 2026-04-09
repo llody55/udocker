@@ -197,23 +197,25 @@
                         <a href="{% url 'docker_volumes_info' %}"><i class="layui-icon layui-icon-lock">&nbsp;&nbsp;<span>{% translate "存储管理" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-6 %}{% endblock %}">
-                        <a href="{% url 'docker_event_info' %}"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>{% translate "事件中心" %}</span></i></a>
+                        <a href="{% url 'webssh_info' %}"><i class="layui-icon layui-icon-template">&nbsp;&nbsp;<span>{% translate "主机终端" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-7 %}{% endblock %}">
-                        <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>{% translate "系统设置" %}</span></i></a>
-                        <dl class="layui-nav-child">
-                            <dd><a href="{% url 'docker_registries_info' %}" class="{% block item-7-1 %}{% endblock %}">{% translate "镜像仓库" %}</a></dd>
-                        </dl>
+                        <a href="{% url 'docker_event_info' %}"><i class="layui-icon layui-icon-tips">&nbsp;&nbsp;<span>{% translate "事件中心" %}</span></i></a>
                     </li>
                     <li class="layui-nav-item {% block item-8 %}{% endblock %}">
+                        <a href="javascript:;"><i class="layui-icon layui-icon-set">&nbsp;&nbsp;<span>{% translate "系统设置" %}</span></i></a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="{% url 'docker_registries_info' %}" class="{% block item-8-1 %}{% endblock %}">{% translate "镜像仓库" %}</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item {% block item-9 %}{% endblock %}">
                         <a href="javascript:;"><i class="layui-icon layui-icon-username">&nbsp;&nbsp;<span>{% translate "用户中心" %}</span></i></a>
                         <dl class="layui-nav-child">
-                            <dd><a href="{% url 'password_reset_request' %}" class="{% block item-8-1 %}{% endblock %}">{% translate "账户" %}</a></dd>
-                            <dd><a href="{% url 'webssh_info' %}" class="{% block item-8-2 %}{% endblock %}">{% translate "终端" %}</a></dd>
+                            <dd><a href="{% url 'password_reset_request' %}" class="{% block item-9-1 %}{% endblock %}">{% translate "账户" %}</a></dd>
                         </dl>
                         
                     </li>
-                    <li class="layui-nav-item {% block item-9 %}{% endblock %}">
+                    <li class="layui-nav-item {% block item-10 %}{% endblock %}">
                         <a href="{% url 'about' %}"><i class="layui-icon layui-icon-about">&nbsp;&nbsp;<span>{% translate "关于" %}</span></i></a>
                     </li>
                 </ul>

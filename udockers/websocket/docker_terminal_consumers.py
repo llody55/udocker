@@ -103,13 +103,6 @@ class ProxyConsumer(WebsocketConsumer):
             self.input_thread.daemon = True
             self.input_thread.start()
             print("输入处理线程已启动")
-            
-            # 启动输入处理线程
-            print("启动输入处理线程...")
-            self.input_thread = Thread(target=self.handle_input)
-            self.input_thread.daemon = True
-            self.input_thread.start()
-            print("输入处理线程已启动")
         except Exception as e:
             print(f"创建交互式shell失败: {e}")
             self.close()

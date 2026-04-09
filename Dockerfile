@@ -46,6 +46,5 @@ RUN echo "from apps.models import Registries; registry = Registries(registries_n
 RUN chmod +x start.sh
 
 EXPOSE 9002
-EXPOSE 8000
 
 CMD ["./start.sh"]

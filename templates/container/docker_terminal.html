@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <title>容器终端</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css" />
-    <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script> -->
     <link href="/static/layui/css/layui.css" rel="stylesheet" />
     <link rel="stylesheet" href="/static/xterm/xterm.css" />
     <script src="/static/xterm/xterm.js"></script>
@@ -29,66 +27,72 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 10px;
         }
         
         .header {
-            margin-bottom: 20px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1890ff;
             margin-bottom: 10px;
         }
         
-        .form-card {
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1890ff;
+            margin-bottom: 5px;
+        }
+        
+        .terminal-card {
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
-        .form-title {
-            font-size: 18px;
+        .terminal-header {
+            background-color: #f0f0f0;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .terminal-title {
+            font-size: 14px;
             font-weight: 500;
-            margin-bottom: 15px;
             color: #333;
         }
         
-        .form-item {
-            margin-bottom: 15px;
+        .terminal-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-left: 10px;
         }
         
-        .form-label {
-            display: inline-block;
-            width: 80px;
-            font-weight: 500;
-            margin-right: 10px;
+        .status-connected {
+            background-color: #52c41a;
+            color: white;
         }
         
-        .form-control {
-            width: 200px;
-            padding: 8px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 4px;
-            font-size: 14px;
+        .status-disconnected {
+            background-color: #ff4d4f;
+            color: white;
         }
         
-        .form-control:focus {
-            outline: none;
-            border-color: #1890ff;
-            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        .terminal-actions {
+            display: flex;
+            gap: 8px;
         }
         
         .btn {
-            display: inline-block;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
@@ -103,39 +107,48 @@
             background-color: #40a9ff;
         }
         
-        .terminal-container {
-            flex: 1;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .terminal-header {
+        .btn-secondary {
             background-color: #f0f0f0;
-            padding: 10px 15px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .terminal-title {
-            font-size: 14px;
-            font-weight: 500;
             color: #333;
         }
         
-        .terminal-actions {
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .config-section {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .config-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .config-label {
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+            color: #666;
+        }
+        
+        .config-select {
+            padding: 4px 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 12px;
         }
         
         .terminal-window {
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
         
         #terminal {
@@ -143,21 +156,54 @@
             height: 100%;
         }
         
+        .terminal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            z-index: 10;
+        }
+        
+        .terminal-footer {
+            padding: 8px 16px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer-info {
+            display: flex;
+            gap: 16px;
+        }
+        
         @media (max-width: 768px) {
             .container {
-                padding: 10px;
+                padding: 5px;
             }
             
-            .form-control {
-                width: 100%;
+            .config-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
             }
             
-            .form-label {
-                display: block;
-                margin-bottom: 5px;
+            .footer-info {
+                flex-direction: column;
+                gap: 4px;
             }
         }
-      </style>
+    </style>
 </head>
 
 <body>
@@ -166,104 +212,165 @@
             <h1>容器终端</h1>
         </div>
         
-        <div class="form-card">
-            <div class="form-title">终端配置</div>
-            <form id="terminal-form">
-                <div class="form-item">
-                    <label class="form-label">Command:</label>
-                    <select name="command" class="form-control">
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div style="display: flex; align-items: center;">
+                    <div class="terminal-title">容器终端</div>
+                    <div class="terminal-status status-disconnected" id="connection-status">未连接</div>
+                </div>
+                <div class="terminal-actions">
+                    <button type="button" id="connect-btn" class="btn btn-primary">连接</button>
+                    <button type="button" id="clear-btn" class="btn btn-secondary" disabled>清空</button>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <div class="config-item">
+                    <span class="config-label">Command:</span>
+                    <select name="command" class="config-select" id="command-select">
                         <option value="/bin/sh" selected>/bin/sh</option>
                         <option value="/bin/bash">/bin/bash</option>
                         <option value="/bin/ash">/bin/ash</option>
                     </select>
                 </div>
-                <div class="form-item">
-                    <label class="form-label">User:</label>
-                    <input type="text" name="user" value="root" class="form-control" placeholder="请输入用户名">
-                </div>
-                <div class="form-item">
-                    <button type="button" id="connect-btn" class="btn btn-primary">连接</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="terminal-container">
-            <div class="terminal-header">
-                <div class="terminal-title">终端窗口</div>
-                <div class="terminal-actions">
-                    <button type="button" id="clear-btn" class="btn">清空</button>
+                <div class="config-item">
+                    <span class="config-label">User:</span>
+                    <input type="text" name="user" value="root" class="config-select" placeholder="用户名">
                 </div>
             </div>
+            
             <div class="terminal-window">
                 <div id="terminal"></div>
+                <div class="terminal-overlay" id="terminal-overlay">
+                    <div>请点击连接按钮建立终端连接</div>
+                </div>
+            </div>
+            
+            <div class="terminal-footer">
+                <div class="footer-info">
+                    <div>容器: {{ connect.container_id }}</div>
+                    <div>工作目录: /</div>
+                </div>
+                <div>按 Ctrl+C 终止命令</div>
             </div>
         </div>
     </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var ws;
-        var term = new Terminal({
-            cursorBlink: true, // 光标闪烁
-            lineHeight: 1.2,  //行高
-            fontSize: 14,  //字体大小
-            cursorStyle: 'underline', // 光标样式
-            scrollback: 1000,
-            tabStopWidth: 4,
-            fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace", //字体
-            convertEol: true, //启用时，光标将设置为下一行的开头
-            disableStdin: false, //是否禁用输入
-            theme: {  //主题
-                background: '#181d28',  //背景
-                foreground: '#FFF',  //前景
-                cursor: '#FFFFFF' //设置光标颜色
-            }
-        });
+        var ws = null;
+        var term = null;
+        var isConnected = false;
+        var currentCommand = '/bin/sh';
+        var resizeTimeout = null;
         
         // 显示终端区域的函数
         function showTerminal() {
             document.getElementById('terminal').style.display = 'block';
+            document.getElementById('terminal-overlay').style.display = 'none';
         }
         
         // 隐藏终端区域的函数
         function hideTerminal() {
             document.getElementById('terminal').style.display = 'none';
+            document.getElementById('terminal-overlay').style.display = 'flex';
         }
         
         // 更新终端显示状态和按钮文本的函数
-        function updateTerminalDisplay(isConnected) {
+        function updateTerminalDisplay(connected) {
+            isConnected = connected;
             var connectBtn = document.getElementById('connect-btn');
-            connectBtn.textContent = isConnected ? '断开连接' : '连接';
-            if (isConnected) {
+            var clearBtn = document.getElementById('clear-btn');
+            var statusElement = document.getElementById('connection-status');
+            
+            if (connected) {
+                connectBtn.textContent = '断开连接';
+                clearBtn.disabled = false;
+                statusElement.textContent = '已连接';
+                statusElement.className = 'terminal-status status-connected';
                 showTerminal();
             } else {
+                connectBtn.textContent = '连接';
+                clearBtn.disabled = true;
+                statusElement.textContent = '未连接';
+                statusElement.className = 'terminal-status status-disconnected';
                 hideTerminal();
-                ws = null; // 关闭连接时清理WebSocket对象
+                ws = null;
             }
         }
         
         // 清空终端内容的函数
         function clearTerminal() {
-            term.clear();
+            if (term) {
+                term.clear();
+            }
         }
         
         // 调整终端大小的函数
         function resizeTerminal() {
-            var terminalElement = document.getElementById('terminal');
-            var containerElement = terminalElement.parentElement;
-            var width = containerElement.clientWidth;
-            var height = containerElement.clientHeight;
-            
-            term.resize(Math.floor(width / 8), Math.floor(height / 18));
+            if (term) {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(function() {
+                    var terminalElement = document.getElementById('terminal');
+                    var containerElement = terminalElement.parentElement;
+                    var width = containerElement.clientWidth;
+                    var height = containerElement.clientHeight;
+                    
+                    term.resize(Math.floor(width / 8), Math.floor(height / 18));
+                }, 100);
+            }
+        }
+        
+        // 清理终端实例
+        function cleanupTerminal() {
+            if (term) {
+                try {
+                    term.dispose();
+                } catch (e) {
+                    console.error('清理终端实例失败:', e);
+                }
+                term = null;
+            }
         }
         
         // 初始化WebSocket连接
         function initializeWebSocket() {
+            // 清理旧的终端实例
+            cleanupTerminal();
+            
+            // 创建新的终端实例
+            term = new Terminal({
+                cursorBlink: true,
+                lineHeight: 1.2,
+                fontSize: 14,
+                cursorStyle: 'underline',
+                scrollback: 1000,
+                tabStopWidth: 4,
+                fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace",
+                convertEol: true,
+                disableStdin: false,
+                theme: {
+                    background: '#1e1e1e',
+                    foreground: '#ffffff',
+                    cursor: '#ffffff'
+                }
+            });
+            
             term.open(document.getElementById('terminal'));
+            
+            // 阻止终端容器的默认滚动行为
+            document.getElementById('terminal').addEventListener('keydown', function(e) {
+                if (e.key === ' ' || e.key === 'PageUp' || e.key === 'PageDown' || e.key === 'Home' || e.key === 'End') {
+                    e.preventDefault();
+                }
+            });
+            
+            // 确保终端获得焦点
+            document.getElementById('terminal').addEventListener('click', function() {
+                term.focus();
+            });
             
             // 调整终端大小
             resizeTerminal();
-            // 监听窗口大小变化
-            window.addEventListener('resize', resizeTerminal);
             
             // 获取表单选项
             var command = document.querySelector('[name="command"]').value;
@@ -275,38 +382,67 @@
             // 创建WebSocket连接
             var wsUrl = 'ws://' + window.location.host + '/apps/docker_terminal/?container=' + container_id + '&workdir=/&cmd=' + command;
             console.log("请求地址：" + wsUrl);
-            ws = new WebSocket(wsUrl);
+            
+            try {
+                ws = new WebSocket(wsUrl);
+            } catch (e) {
+                console.error('创建WebSocket连接失败:', e);
+                if (term) {
+                    term.write('\n\r\x1B[1;3;31m连接错误：无法创建WebSocket连接\x1B[0m\n\r');
+                }
+                updateTerminalDisplay(false);
+                return;
+            }
         
             ws.onopen = function () {
                 console.log('WebSocket connection established');
-                document.getElementById('connect-btn').textContent = '断开连接';
                 updateTerminalDisplay(true);
-                term.focus(); // 自动聚焦到终端上
+                // 确保终端获得焦点
+                setTimeout(function() {
+                    if (term) {
+                        term.focus();
+                    }
+                }, 100);
+                if (term) {
+                    term.write('\n\r\x1B[1;3;32m连接成功！\x1B[0m\n\r');
+                }
             };
         
             ws.onmessage = function (event) {
                 // 实时处理从服务器接收的数据
-                term.write(event.data);
+                if (term) {
+                    term.write(event.data);
+                    // 自动滚动到终端底部
+                    term.scrollToBottom();
+                }
             };
         
             ws.onclose = function (event) {
                 // 连接关闭时的处理逻辑
                 console.log('WebSocket连接已关闭', event);
-                term.write('\n\r\x1B[1;3;31m断开连接！\x1B[0m');
-                updateTerminalDisplay(false); // 更新终端显示为未连接状态
+                if (term) {
+                    term.write('\n\r\x1B[1;3;31m断开连接！\x1B[0m\n\r');
+                }
+                updateTerminalDisplay(false);
             };
         
-            ws.onerror = function (error) {
-                console.log('WebSocket error: ', error);
-                term.write('\n\r\x1B[1;3;31m连接错误！\x1B[0m');
-                clearTerminal();
+            ws.onerror = function (event) {
+                console.log('WebSocket error:', event);
+                if (term) {
+                    term.write('\n\r\x1B[1;3;31m连接错误！\x1B[0m\n\r');
+                }
+                updateTerminalDisplay(false);
             };
         
             // 直接处理终端输入，实时发送到服务器
             term.onData(function (data) {
                 // 直接发送输入到服务器，不使用缓冲区
                 if(ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(data);
+                    try {
+                        ws.send(data);
+                    } catch (e) {
+                        console.error('发送数据失败:', e);
+                    }
                 }
             });
         }
@@ -315,17 +451,14 @@
         document.getElementById('connect-btn').addEventListener('click', function() {
             var currentText = this.textContent;
             if (currentText === '连接') {
-                // 在尝试建立新连接之前，检查并关闭任何现有的连接
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.close(); // 关闭现有的WebSocket连接
-                }
-                ws = null; // 清除WebSocket对象
-            
                 // 尝试连接
                 initializeWebSocket();
             } else if (currentText === '断开连接' && ws) {
-                ws.close(); // 如果按钮显示“断开连接”，则关闭WebSocket连接
-                ws = null; // 清除WebSocket对象
+                try {
+                    ws.close();
+                } catch (e) {
+                    console.error('关闭WebSocket连接失败:', e);
+                }
                 updateTerminalDisplay(false);
             }
         });
@@ -335,12 +468,42 @@
             clearTerminal();
         });
         
+        // 命令选择变化事件监听
+        document.getElementById('command-select').addEventListener('change', function() {
+            var newCommand = this.value;
+            if (newCommand !== currentCommand && isConnected) {
+                // 命令变化且当前已连接，自动重新连接
+                if (ws) {
+                    try {
+                        ws.close();
+                    } catch (e) {
+                        console.error('关闭WebSocket连接失败:', e);
+                    }
+                }
+                currentCommand = newCommand;
+                setTimeout(initializeWebSocket, 300);
+            } else {
+                currentCommand = newCommand;
+            }
+        });
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', resizeTerminal);
+        
         // 确保连接关闭时也更新按钮文本
         window.onbeforeunload = function() {
             if(ws) {
-                ws.close();
+                try {
+                    ws.close();
+                } catch (e) {
+                    console.error('关闭WebSocket连接失败:', e);
+                }
             }
         };
+        
+        // 初始化状态
+        updateTerminalDisplay(false);
     });
-    </script>
+</script>
+</body>
 </html>

@@ -1,199 +1,614 @@
 {% extends 'docker_base.html' %}
 {% block title %}主机终端{% endblock %}
-{% block item-8 %}layui-nav-itemed{% endblock %}
-{% block item-8-2 %}layui-this{% endblock %}
+{% block item-6 %}layui-this{% endblock %}
 {% load i18n %}
 {% block head_style %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-    .container {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        color: #333;
+    }
+    
+    .terminal-container {
         display: flex;
-        height: calc(100vh - 50px - 120px);  /* 调整高度以适应 */
-        overflow: hidden; 
+        height: calc(100vh - 50px - 120px);
+        gap: 16px;
+        padding: 16px;
+        overflow: hidden;
     }
     
-    .left-block{
+    .terminal-sidebar {
+        width: 300px;
         display: flex;
-        flex-direction: column; /* 让内部元素垂直排列 */
-        padding: 10px;
-        width: 80%;
-        height: auto;
-        border: 1px solid #333;
-        border-radius: 5px;
-        overflow: hidden; /* 防止内容溢出导致滚动条出现 */
+        flex-direction: column;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
     }
-    .right-block {
+    
+    .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #f9f9f9;
+    }
+    
+    .sidebar-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+    }
+    
+    .sidebar-actions {
         display: flex;
-        flex-direction: column; /* 让内部元素垂直排列 */
-        padding: 10px;
-        width: 20%;
-        height: auto;
-        border: 1px solid #333;
-        border-radius: 5px;
-        overflow: hidden; /* 防止内容溢出导致滚动条出现 */
+        gap: 8px;
+        margin-bottom: 16px;
     }
     
-    .tab-header {
-        border: 1px solid #444;
-        border-bottom: none;
-        border-radius: 5px 5px 0 0;
+    .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
     }
     
-    .layui-tab-content {
-        display: flex; /* 启用Flexbox */
-        border: 1px solid #444;
-        height: calc(100vh - 260px);
-        width: 100%;
-        background-color: black; /*  内容区域背景色为黑色 */
-        overflow: auto; /* 添加滚动条 */
-        padding: 0; /* 移除内边距 */
-        margin: 0; /* 移除外边距 */
-    }
-    .layui-tab-item {
-        width: 100%;
-        border: 1px solid #444;
-        max-width: 98%;
-        background-color: #000;
-        white-space: pre-wrap; /* 保留空格和换行符，并在必要时换行 */
-        word-wrap: break-word; /* 允许长单词换行 */
-        word-break: break-all; /* 强制在任何字符处换行，包括单词中间 */ 
-    }
-    
-    .layui-tab-title {
+    .btn-primary {
+        background-color: #1890ff;
         color: #fff;
     }
-     /* 刷新按钮样式 */
-     .custom-refresh-btn {
-        float: right;
-        background-color: white;
-        border: 1px solid #e6e6e6;
-        color: #333;
-        border-radius: 2px;
-    }
-
-    .custom-refresh-btn:hover {
-        background-color: #f2f2f2; /* 鼠标悬浮时的背景色 */
-        cursor: pointer; /* 鼠标悬浮时变成手形图标 */
+    
+    .btn-primary:hover {
+        background-color: #40a9ff;
     }
     
+    .btn-secondary {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .sidebar-content {
+        flex: 1;
+        overflow: auto;
+        padding: 8px;
+    }
+    
+    .server-list {
+        list-style: none;
+    }
+    
+    .server-item {
+        padding: 12px;
+        margin-bottom: 8px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background-color: #fff;
+    }
+    
+    .server-item:hover {
+        border-color: #1890ff;
+        box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+    }
+    
+    .server-item.active {
+        border-color: #1890ff;
+        background-color: #e6f7ff;
+    }
+    
+    .server-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+    
+    .server-ip {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .server-status {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+    
+    .status-online {
+        background-color: #52c41a;
+        color: white;
+    }
+    
+    .status-offline {
+        background-color: #ff4d4f;
+        color: white;
+    }
+    
+    .status-checking {
+        background-color: #faad14;
+        color: white;
+    }
+    
+    .server-actions {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+    }
+    
+    .action-btn {
+        padding: 2px 8px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background-color: #f5f5f5;
+        color: #666;
+    }
+    
+    .action-btn:hover {
+        border-color: #1890ff;
+        color: #1890ff;
+    }
+    
+    .terminal-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .terminal-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #f9f9f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .terminal-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .terminal-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .terminal-tabs {
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #f5f5f5;
+        display: flex;
+        overflow-x: auto;
+        flex-shrink: 0;
+    }
+    
+    .terminal-tab {
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        white-space: nowrap;
+    }
+    
+    .terminal-tab.active {
+        border-bottom-color: #1890ff;
+        color: #1890ff;
+        background-color: #fff;
+    }
+    
+    .tab-close {
+        margin-left: 8px;
+        font-size: 12px;
+        color: #999;
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+    
+    .tab-close:hover {
+        background-color: #f0f0f0;
+        color: #666;
+    }
+    
+    .terminal-content {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .terminal-window {
+        width: 100%;
+        height: 100%;
+        background-color: #1e1e1e;
+        font-family: "Monaco", "Menlo", "Consolas", "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #d4d4d4;
+        overflow: auto;
+        padding-bottom: 20px;
+        box-sizing: border-box;
+    }
+    
+    .terminal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(30, 30, 30, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d4d4d4;
+        font-size: 16px;
+        z-index: 10;
+    }
+    
+    .terminal-footer {
+        padding: 8px 16px;
+        border-top: 1px solid #e0e0e0;
+        background-color: #f9f9f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .footer-info {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .dot-green {
+        background-color: #52c41a;
+    }
+    
+    .dot-red {
+        background-color: #ff4d4f;
+    }
+    
+    .dot-yellow {
+        background-color: #faad14;
+    }
+    
+    @media (max-width: 768px) {
+        .terminal-container {
+            flex-direction: column;
+            height: auto;
+            min-height: calc(100vh - 50px - 120px);
+        }
+        
+        .terminal-sidebar {
+            width: 100%;
+            max-height: 200px;
+        }
+        
+        .terminal-main {
+            flex: 1;
+            min-height: 400px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .terminal-container {
+            padding: 8px;
+            gap: 8px;
+        }
+        
+        .sidebar-header {
+            padding: 12px;
+        }
+        
+        .terminal-header {
+            padding: 8px 12px;
+        }
+        
+        .terminal-footer {
+            padding: 6px 12px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        
+        .footer-info {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+    }
 </style>
 {% endblock %}
 {% block context %}
 <span class="layui-breadcrumb">
     <a href="#">{% translate "首页" %}</a>
-    <a href="#">{% translate "用户中心" %}</a>
     <a><cite>{% translate "主机终端" %}</cite></a>
 </span>
 <hr>
-<div class="container">
-    <div class="layui-panel left-block">
-        <div class="tab-header">
-            <!-- 选项卡的标签页模块 -->
-            <div class="layui-tab" lay-filter="test-handle" lay-allowclose="true">
-                <ul class="layui-tab-title"></ul>
-                <!-- 选项卡的内容区域 -->
-                <div class="layui-tab-content"></div>
+<div class="terminal-container">
+    <div class="terminal-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">服务器列表</div>
+            <div class="sidebar-actions">
+                <button class="btn btn-primary hostAdd">{% translate "添加服务器" %}</button>
+                <button class="btn btn-secondary" id="refreshBtn">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                </button>
             </div>
+        </div>
+        <div class="sidebar-content">
+            <ul class="server-list" id="serverList">
+                <!-- 服务器列表将通过JavaScript动态生成 -->
+            </ul>
         </div>
     </div>
     
-    <div class="layui-panel right-block">
-        <!-- 新增选项卡等功能模块 -->
-        <div class="layui-btn-container">
-            <button class="layui-btn hostAdd" lay-event="hostAdd">{% translate "添加服务器" %}</button>
-            <button class="layui-btn reloads custom-refresh-btn" id="refreshBtn" lay-event="shuaBtn">
-                <i class="layui-icon layui-icon-refresh"></i>
-            </button>
+    <div class="terminal-main">
+        <div class="terminal-header">
+            <div class="terminal-title">终端</div>
+            <div class="terminal-actions">
+                <button class="btn btn-secondary" id="clearBtn" disabled>{% translate "清空" %}</button>
+                <button class="btn btn-secondary" id="disconnectBtn" disabled>{% translate "断开" %}</button>
+            </div>
         </div>
-        <div class="layui-col-md12">
-            <table class="layui-hide" id="demo" lay-filter="test"></table>
-            <!--  行工具 -->
-            <script type="text/html" id="barDemo">
-                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="auth">{% translate "连接" %}</a>
-                <a class="layui-btn layui-btn-xs" lay-event="more">{% translate "更多" %}<i class="layui-icon layui-icon-down"></i></a>
-            </script>
+        
+        <div class="terminal-tabs" id="terminalTabs">
+            <!-- 标签页将通过JavaScript动态生成 -->
+        </div>
+        
+        <div class="terminal-content">
+            <div class="terminal-overlay" id="terminalOverlay">
+                <div>请选择一个服务器进行连接</div>
+            </div>
+            <div id="terminalContainer"></div>
+        </div>
+        
+        <div class="terminal-footer">
+            <div class="footer-info">
+                <div>状态: <span id="connectionStatus">未连接</span></div>
+                <div>服务器: <span id="currentServer">无</span></div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot dot-red" id="statusDot"></div>
+                <span id="statusText">未连接</span>
+            </div>
         </div>
     </div>
 </div>
-
-
 {% endblock %}
 {% block custom_js %}
 <script>
-    layui.use(function () {
-        var form = layui.form;
-        var table = layui.table;
-        var element = layui.element;
-        //var $ = layui.jquery;
-        var layer = layui.layer;
-        var util = layui.util;
-        var $ = layui.$;
-        var dropdown = layui.dropdown //下拉菜单
-
-        table.render({
-            elem: '#demo'
-            , url: "{% url 'webssh_info_api' %}" 
-            , page: true //开启分页
-            , cols: [[
-                { field: 'hostname', title: '服务器IP'}
-                , { fixed: 'right', title: '操作', toolbar: '#barDemo', align: "center" }
-            ]],
-            id: 'TT',
-        });
-        table.on('tool(test)', function (obj) {
-            var csrf_token = $('[name="csrfmiddlewaretoken"]').val();
-            var data = obj.data;
-            if (obj.event === 'auth') {
-                layer.msg("连接中，请稍等")
-                // 显示 loading 效果
-                var loadingIndex = layer.load(3);
-                 // 创建一个新的标签页
-                var label = data.hostname +'-'+ (Math.random()*1000|0); // 使用服务器IP作为标签名
-                var uniqueTerminalId = 'terminal-' + (Math.random()*1000|0); // 创建唯一ID
-                var content = '<div id="' + uniqueTerminalId + '"></div>'; // 用于显示伪终端输出的div
-                element.tabAdd('test-handle', {
-                    title: label,
-                    content: content,
-                    id: label, // 使用服务器IP作为标签的唯一标识
-                    change: true // 添加完毕后即自动切换
-                });
-                element.render('test-handle');
-
-                function get_box_size(terminalId) {
-                    //init_width和init_height是终端默认的高度和宽度
-                    let init_width = 9;
-                    let init_height = 18;
-                    let windows_width = $('#' + terminalId).width();
-                    let windows_height = $(window).height();
-                    return {
-                        cols: Math.floor(windows_width / init_width),
-                        rows: Math.floor(windows_height / init_height),
+    document.addEventListener('DOMContentLoaded', function () {
+        var terminals = {};  // 存储多个终端实例
+        var currentTerminalId = null;
+        var serverList = [];
+        
+        // 初始化服务器列表
+        function initServerList() {
+            console.log('开始获取服务器列表...');
+            $.ajax({
+                url: "{% url 'webssh_info_api' %}",
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    console.log('API返回数据:', data);
+                    if (data.data && Array.isArray(data.data)) {
+                        serverList = data.data;
+                    } else if (Array.isArray(data)) {
+                        serverList = data;
+                    } else {
+                        serverList = [];
                     }
+                    console.log('服务器列表:', serverList);
+                    renderServerList();
+                    // 检测服务器状态
+                    checkServerStatus();
+                },
+                error: function (xhr, status, error) {
+                    console.error('获取服务器列表失败:', status, error);
                 }
-                // 初始化xterm.js终端
-                let cols = get_box_size(uniqueTerminalId).cols;
-                let rows = get_box_size(uniqueTerminalId).rows;
+            });
+        }
+        
+        // 渲染服务器列表
+        function renderServerList() {
+            console.log('开始渲染服务器列表...');
+            var serverListElement = document.getElementById('serverList');
+            serverListElement.innerHTML = '';
+            
+            if (serverList.length === 0) {
+                serverListElement.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">暂无服务器数据</div>';
+                return;
+            }
+            
+            serverList.forEach(function (server) {
+                var li = document.createElement('li');
+                li.className = 'server-item';
+                li.dataset.hostAddress = server.host_address;
+                li.dataset.hostname = server.hostname;
+                
+                li.innerHTML = `
+                    <div class="server-info">
+                        <div class="server-ip">${server.hostname}</div>
+                        <div class="server-status status-checking" data-host="${server.host_address}">检查中...</div>
+                    </div>
+                    <div class="server-actions">
+                        <button class="action-btn" onclick="connectToServer('${server.host_address}', '${server.hostname}')">连接</button>
+                        <button class="action-btn" onclick="editServer('${server.host_address}')">编辑</button>
+                        <button class="action-btn" onclick="deleteServer('${server.hostname}')">删除</button>
+                    </div>
+                `;
+                
+                serverListElement.appendChild(li);
+            });
+        }
+        
+        // 检测服务器状态
+        function checkServerStatus() {
+            serverList.forEach(function (server) {
+                var statusElement = document.querySelector(`.server-status[data-host="${server.host_address}"]`);
+                if (statusElement) {
+                    // 实际的状态检测
+                    setTimeout(function() {
+                        // 这里应该使用真实的ping检测，现在暂时都设为在线
+                        var isOnline = true;
+                        statusElement.className = isOnline ? 'server-status status-online' : 'server-status status-offline';
+                        statusElement.textContent = isOnline ? '在线' : '离线';
+                    }, 500);
+                }
+            });
+        }
+        
+        // 连接到服务器
+        window.connectToServer = function(hostAddress, hostname) {
+            console.log('连接到服务器:', hostname, hostAddress);
+            
+            // 创建新标签页
+            var tabId = 'tab-' + Date.now();
+            addTerminalTab(tabId, hostname, hostAddress);
+            
+            // 创建终端容器
+            var terminalId = 'terminal-' + Date.now();
+            var terminalContainer = document.getElementById('terminalContainer');
+            terminalContainer.innerHTML = `<div id="${terminalId}" class="terminal-window"></div>`;
+            
+            // 隐藏覆盖层
+            document.getElementById('terminalOverlay').style.display = 'none';
+            
+            // 计算终端尺寸
+            function getTerminalSize() {
+                var terminalContainer = document.getElementById(terminalId);
+                var width = terminalContainer.clientWidth || 800;
+                var height = terminalContainer.clientHeight || 600;
+                
+                // 计算合适的列数和行数
+                var fontSize = 14;
+                var charWidth = fontSize * 0.6;
+                var charHeight = fontSize * 1.4;
+                
+                var cols = Math.max(80, Math.floor(width / charWidth));
+                var rows = Math.max(24, Math.floor(height / charHeight));
+                
+                return { cols: cols, rows: rows };
+            }
+            
+            // 初始化终端
+            // 延迟一下确保容器已经渲染
+            setTimeout(function() {
+                var size = getTerminalSize();
                 var term = new Terminal({
                     cursorBlink: true,
-                    rows: rows,
-                    cols: cols,
+                    lineHeight: 1.4,
+                    fontSize: 14,
+                    cursorStyle: 'underline',
+                    scrollback: 1000,
+                    tabStopWidth: 4,
+                    fontFamily: "Monaco, Menlo, Consolas, 'Courier New', monospace",
+                    convertEol: true,
+                    disableStdin: false,
+                    cols: size.cols,
+                    rows: size.rows,
+                    allowProposedApi: true,
                     useStyle: true,
+                    theme: {
+                        background: '#1e1e1e',
+                        foreground: '#d4d4d4',
+                        cursor: '#d4d4d4',
+                        selection: 'rgba(255, 255, 255, 0.2)',
+                        black: '#1e1e1e',
+                        red: '#f48771',
+                        green: '#81c784',
+                        yellow: '#ffd54f',
+                        blue: '#64b5f6',
+                        magenta: '#ba68c8',
+                        cyan: '#4dd0e1',
+                        white: '#d4d4d4',
+                        brightBlack: '#424242',
+                        brightRed: '#ff8a65',
+                        brightGreen: '#a5d6a7',
+                        brightYellow: '#ffeb3b',
+                        brightBlue: '#90caf9',
+                        brightMagenta: '#ce93d8',
+                        brightCyan: '#4dd0e1',
+                        brightWhite: '#ffffff'
+                    }
+                });
+                
+                term.open(document.getElementById(terminalId));
+                
+                // 阻止终端容器的默认滚动行为，但允许空格键正常工作
+                document.getElementById(terminalId).addEventListener('keydown', function(e) {
+                    // 只阻止特定按键的默认行为，不阻止空格键
+                    if (e.key === 'PageUp' || e.key === 'PageDown' || e.key === 'Home' || e.key === 'End') {
+                        e.preventDefault();
+                    }
+                });
+                
+                // 确保终端获得焦点
+                document.getElementById(terminalId).addEventListener('click', function() {
+                    term.focus();
                 });
                 
                 // 连接WebSocket
                 var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-                var socketURL = protocol + window.location.host + '/apps/webssh_terminal/' + '?host_address=' + data.host_address;
+                var socketURL = protocol + window.location.host + '/apps/webssh_terminal/' + '?host_address=' + hostAddress;
                 var sock = new WebSocket(socketURL);
-                sock.binaryType = "arraybuffer";  // 必须设置，zmodem才可以使用
-
-                // ZModem处理对象
-                var zsession;
-
-                // 简化的文件接收缓存。真实环境下应更复杂处理。
-                var download_buffer;
-
-                term.open(document.getElementById(uniqueTerminalId));
-                // 设置WebSocket事件处理程序
+                sock.binaryType = "arraybuffer";
+                
                 sock.onopen = function () {
+                    console.log('WebSocket connection established');
+                    updateConnectionStatus(true, hostname);
+                    
+                    // 发送终端尺寸
+                    let init_data = JSON.stringify({
+                        'flag': 'resize',
+                        'cols': size.cols,
+                        'rows': size.rows
+                    });
+                    sock.send(init_data);
+                    
                     term.on('data', function (data) {
                         let send_data = JSON.stringify({
                             'flag': 'entered_key',
@@ -202,134 +617,267 @@
                             'rows': null
                         });
                         sock.send(send_data);
-                        // 关闭 loading 效果
-                        layer.close(loadingIndex);
                     });
-                    sock.onerror = function (event) {
-                        console.log('error:' + e);
-                        // 关闭 loading 效果
-                        layer.close(loadingIndex);
-                    };
-                    sock.onmessage = function (event) {
-                        term.write(event.data);
-                        // 关闭 loading 效果
-                        layer.close(loadingIndex);
-                    };
-                    sock.onclose = function (event) {
-                        term.write('\n\r\x1B[1;3;31m连接关闭！\x1B[0m');
-                        // 关闭 loading 效果
-                        layer.close(loadingIndex);
-                    };
+                    
+                    // 显示连接成功消息
+                    term.write('\n\r\x1B[1;3;32m连接成功！\x1B[0m\n\r');
                 };
-
+                
+                sock.onerror = function (event) {
+                    console.log('WebSocket error:', event);
+                    term.write('\n\r\x1B[1;3;31m连接错误！\x1B[0m\n\r');
+                    updateConnectionStatus(false);
+                };
+                
+                sock.onmessage = function (event) {
+                    term.write(event.data);
+                    // 自动滚动到终端底部，确保提示符可见
+                    setTimeout(function() {
+                        term.scrollToBottom();
+                    }, 10);
+                };
+                
+                sock.onclose = function (event) {
+                    term.write('\n\r\x1B[1;3;31m连接关闭！\x1B[0m\n\r');
+                    updateConnectionStatus(false);
+                };
+                
                 // 监听窗口大小变化
-                $(window).resize(function () {
-                    let cols = get_box_size(uniqueTerminalId).cols;
-                    let rows = get_box_size(uniqueTerminalId).rows;
-                    let send_data = JSON.stringify({ 'flag': 'resize', 'cols': cols, 'rows': rows });
-                    console.log("传递的宽度与高度：", send_data)
-                    sock.send(send_data);
-                    term.resize(cols, rows)
-                });
-
-            }else if (obj.event === 'more') {
-                dropdown.render({
-                    elem: this //触发事件的 DOM 对象
-                    , show: true //外部事件触发即显示
-                    , data: [{
-                        title: '文件管理器'
-                        , id: 'file'
-                        , templet: '<span>{% translate "文件管理器" %}</span>'
-                    },{
-                        type: "-",
-                    }, {
-                        title: '编辑'
-                        , id: 'edit'
-                        , templet: '<span>{% translate "编辑" %}</span>'
-                    }, {
-                        type: "-",
-                    }, {
-                        title: '删除'
-                        , id: 'del'
-                        , templet: '<span style="color: red;">{% translate "删除" %}</span>'
-                    }], click: function (menudata) {
-                        if (menudata.id === 'edit') {
-                            layer.msg('编辑操作，当前行 ID:' + data.host_address);
-                        }else if (menudata.id === 'file') {
-                            layer.open({
-                                type: 2,
-                                offset: 'r',
-                                anim: 'slideLeft', // 从右往左
-                                area: ['70%', '100%'],
-                                closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
-                                title: '<span>{% translate "文件管理器" %}</span>',
-                                shade: 0.1,
-                                shift: 2,
-                                shadeClose: false,
-                                id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
-                                content: '{% url "webssh_file_info" %}?host_address=' + data.host_address,
-                                move: false, // 禁止拖动
-                                resize: false, // 禁止调整大小
-                                skin: 'white-background' // 应用自定义的背景颜色类
-                            });
-                        }else if (menudata.id === 'del') {
-                            layer.confirm('真的要删除<span style="color: red">【'+data.hostname+'】</span>这个主机吗？</br><span style="color: red">请注意，此删除为真正意义上的删除!!!</span>', function (index) {
-                                $.ajax({
-                                    type: "DELETE",
-                                    url: "{% url 'webssh_info_api' %}",
-                                    data: data,
-                                    headers: { 'X-CSRFToken': csrf_token },
-                                    success: function (result) {
-                                        if (result.code == '0') {
-                                            obj.del();  // 临时删除当前页面记录
-                                            layer.msg(result.msg, { icon: 6 })
-                                        } else {
-                                            layer.msg(result.msg, { icon: 5 })
-                                        }
-                                    },
-                                    error: function () {
-                                        layer.msg("服务器接口异常！", { icon: 5 })
-                                    }
-                                })
-                            });                          
-                        }
-
+                function handleResize() {
+                    var newSize = getTerminalSize();
+                    term.resize(newSize.cols, newSize.rows);
+                    
+                    // 发送新的尺寸到服务器
+                    if (sock.readyState === WebSocket.OPEN) {
+                        let send_data = JSON.stringify({ 
+                            'flag': 'resize', 
+                            'cols': newSize.cols, 
+                            'rows': newSize.rows 
+                        });
+                        sock.send(send_data);
                     }
-                })
+                }
+                
+                // 添加窗口大小变化监听器
+                window.addEventListener('resize', handleResize);
+                
+                // 保存终端实例
+                terminals[tabId] = {
+                    terminal: term,
+                    websocket: sock,
+                    hostname: hostname,
+                    hostAddress: hostAddress
+                };
+                
+                currentTerminalId = tabId;
+                
+                // 启用按钮
+                document.getElementById('clearBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = false;
+            }, 100);
+        }
+        
+        // 添加终端标签页
+        function addTerminalTab(tabId, title, hostAddress) {
+            var tabsContainer = document.getElementById('terminalTabs');
+            
+            var tab = document.createElement('div');
+            tab.className = 'terminal-tab active';
+            tab.id = tabId;
+            tab.dataset.hostAddress = hostAddress;
+            tab.innerHTML = `
+                <span>${title}</span>
+                <span class="tab-close" onclick="closeTab('${tabId}')">×</span>
+            `;
+            
+            // 移除其他标签的active类
+            var existingTabs = tabsContainer.querySelectorAll('.terminal-tab');
+            existingTabs.forEach(function(existingTab) {
+                existingTab.classList.remove('active');
+            });
+            
+            tabsContainer.appendChild(tab);
+            
+            // 标签点击事件
+            tab.addEventListener('click', function() {
+                switchTab(tabId);
+            });
+        }
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 移除所有标签的active类
+            var tabs = document.getElementById('terminalTabs').querySelectorAll('.terminal-tab');
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            document.getElementById(tabId).classList.add('active');
+            
+            // 显示对应的终端
+            var terminalInfo = terminals[tabId];
+            if (terminalInfo) {
+                currentTerminalId = tabId;
+                updateConnectionStatus(true, terminalInfo.hostname);
+                
+                // 重新显示终端内容
+                var terminalContainer = document.getElementById('terminalContainer');
+                terminalContainer.innerHTML = `<div id="${tabId}-terminal" class="terminal-window"></div>`;
+                terminalInfo.terminal.open(document.getElementById(`${tabId}-terminal`));
+                
+                // 隐藏覆盖层
+                document.getElementById('terminalOverlay').style.display = 'none';
             }
-        });
-
-        // 监听刷新按钮点击事件
-        $('#refreshBtn').on('click', function () {
-            //获取当前页码
-            var currPage = $('.layui-laypage-em').next().html();
-                // 进行刷新操作
-                table.reload('TT', {
+        }
+        
+        // 关闭标签页
+        window.closeTab = function(tabId) {
+            // 关闭WebSocket连接
+            if (terminals[tabId]) {
+                try {
+                    terminals[tabId].websocket.close();
+                } catch (e) {
+                    console.error('关闭WebSocket连接失败:', e);
+                }
+                delete terminals[tabId];
+            }
+            
+            // 移除标签
+            var tab = document.getElementById(tabId);
+            if (tab) {
+                tab.remove();
+            }
+            
+            // 如果关闭的是当前标签，切换到其他标签
+            if (currentTerminalId === tabId) {
+                var remainingTabs = document.getElementById('terminalTabs').querySelectorAll('.terminal-tab');
+                if (remainingTabs.length > 0) {
+                    switchTab(remainingTabs[0].id);
+                } else {
+                    // 没有标签了，显示覆盖层
+                    document.getElementById('terminalOverlay').style.display = 'flex';
+                    document.getElementById('terminalContainer').innerHTML = '';
+                    updateConnectionStatus(false);
+                    
+                    // 禁用按钮
+                    document.getElementById('clearBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = true;
+                }
+            }
+        }
+        
+        // 更新连接状态
+        function updateConnectionStatus(connected, hostname) {
+            var statusDot = document.getElementById('statusDot');
+            var statusText = document.getElementById('statusText');
+            var connectionStatus = document.getElementById('connectionStatus');
+            var currentServerElement = document.getElementById('currentServer');
+            
+            if (connected && hostname) {
+                statusDot.className = 'status-dot dot-green';
+                statusText.textContent = '已连接';
+                connectionStatus.textContent = '已连接';
+                currentServerElement.textContent = hostname;
+            } else {
+                statusDot.className = 'status-dot dot-red';
+                statusText.textContent = '未连接';
+                connectionStatus.textContent = '未连接';
+                currentServerElement.textContent = '无';
+            }
+        }
+        
+        // 清空终端
+        function clearTerminal() {
+            if (currentTerminalId && terminals[currentTerminalId]) {
+                terminals[currentTerminalId].terminal.clear();
+            }
+        }
+        
+        // 断开连接
+        function disconnect() {
+            if (currentTerminalId && terminals[currentTerminalId]) {
+                try {
+                    terminals[currentTerminalId].websocket.close();
+                } catch (e) {
+                    console.error('关闭WebSocket连接失败:', e);
+                }
+                closeTab(currentTerminalId);
+            }
+        }
+        
+        // 编辑服务器
+        window.editServer = function(hostAddress) {
+            console.log('编辑服务器:', hostAddress);
+            // 这里可以实现编辑服务器的逻辑
+            layer.msg('编辑功能开发中');
+        }
+        
+        // 删除服务器
+        window.deleteServer = function(hostname) {
+            console.log('删除服务器:', hostname);
+            layer.confirm(`确定要删除服务器 ${hostname} 吗？`, function(index) {
+                // 这里可以实现删除服务器的逻辑
+                $.ajax({
                     url: "{% url 'webssh_info_api' %}",
-                    page: { curr: currPage }//刷新当前页码
+                    type: 'DELETE',
+                    data: { hostname: hostname },
+                    headers: { 'X-CSRFToken': $('[name="csrfmiddlewaretoken"]').val() },
+                    success: function(result) {
+                        if (result.code == '0') {
+                            layer.msg('删除成功');
+                            initServerList();
+                        } else {
+                            layer.msg('删除失败: ' + result.msg);
+                        }
+                    },
+                    error: function() {
+                        layer.msg('删除失败');
+                    }
                 });
+                layer.close(index);
+            });
+        }
+        
+        // 事件监听
+        document.getElementById('refreshBtn').addEventListener('click', function () {
+            initServerList();
         });
-
-        $('.hostAdd').on('click', function () {
+        
+        document.getElementById('clearBtn').addEventListener('click', function () {
+            clearTerminal();
+        });
+        
+        document.getElementById('disconnectBtn').addEventListener('click', function () {
+            disconnect();
+        });
+        
+        document.querySelector('.hostAdd').addEventListener('click', function () {
             layer.open({
                 type: 2,
                 offset: 'r',
-                anim: 'slideLeft', // 从右往左
+                anim: 'slideLeft',
                 area: ['460px', '100%'],
-                closeBtn: true, // 1或者2表示开启关闭按钮，0表示不开启
+                closeBtn: true,
                 title: "添加主机信息",
                 shade: 0.6,
                 shift: 2,
                 anim: 0,
                 shadeClose: false,
-                id: 'ID-demo-layer-direction-r', //2.8.0新特性，抽屉效果
+                id: 'ID-demo-layer-direction-r',
                 content: '{% url "webssh_add_info" %}',
-                move: false, // 禁止拖动
-                resize: false, // 禁止调整大小
-                skin: 'white-background' // 应用自定义的背景颜色类
+                move: false,
+                resize: false,
+                skin: 'white-background',
+                end: function () {
+                    // 重新加载服务器列表
+                    initServerList();
+                }
             });
         });
-
-    })
+        
+        // 初始化
+        initServerList();
+    });
 </script>
 {% endblock %}

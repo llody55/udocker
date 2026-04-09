@@ -203,7 +203,167 @@
         largeImage.style.display = "none";
       };
   </script>
+  <style>
+    .version-update-notification {
+      position: fixed;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 0 0 12px 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 90%;
+      width: 500px;
+      text-align: center;
+    }
+    
+    .version-update-notification.show {
+      top: 0;
+      animation: bounceIn 0.6s ease;
+    }
+    
+    .version-update-notification.hide {
+      top: -80px;
+      opacity: 0;
+    }
+    
+    .version-update-icon {
+      font-size: 20px;
+      animation: pulse 2s infinite;
+    }
+    
+    .version-update-content {
+      flex: 1;
+    }
+    
+    .version-update-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .version-update-message {
+      font-size: 12px;
+      opacity: 0.95;
+    }
+    
+    .version-update-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .version-update-button {
+      padding: 4px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .version-update-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+    }
+    
+    .version-update-button.primary {
+      background: white;
+      color: #1890ff;
+      border-color: white;
+    }
+    
+    .version-update-button.primary:hover {
+      background: #f5f5f5;
+      transform: translateY(-1px);
+    }
+    
+    .version-update-close {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+    
+    .version-update-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: rotate(90deg);
+    }
+    
+    @keyframes bounceIn {
+      0% {
+        transform: translateX(-50%) translateY(-20px);
+        opacity: 0;
+      }
+      60% {
+        transform: translateX(-50%) translateY(5px);
+        opacity: 1;
+      }
+      80% {
+        transform: translateX(-50%) translateY(-2px);
+      }
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+  </style>
+  <div class="version-update-notification" id="versionUpdateNotification">
+    <div class="version-update-icon">✨</div>
+    <div class="version-update-content">
+      <div class="version-update-title">🎉 新版本来啦！</div>
+      <div class="version-update-message">v{{ version }} → v{{ latest_version }}，快来体验新功能吧！</div>
+    </div>
+    <div class="version-update-actions">
+      <button class="version-update-button" onclick="dismissUpdateNotification()">稍后再说</button>
+      <button class="version-update-button primary" onclick="goToUpdate()">立即升级</button>
+      <div class="version-update-close" onclick="dismissUpdateNotification()">×</div>
+    </div>
+  </div>
   <script>
+    // 版本号比较函数
+    function compareVersions(version1, version2) {
+      var v1 = version1.split('.').map(Number);
+      var v2 = version2.split('.').map(Number);
+      
+      for (var i = 0; i < Math.max(v1.length, v2.length); i++) {
+        var num1 = v1[i] || 0;
+        var num2 = v2[i] || 0;
+        
+        if (num1 > num2) return 1;
+        if (num1 < num2) return -1;
+      }
+      
+      return 0;
+    }
+
     layui.use(['element', 'layer', 'util'], function () {
       var element = layui.element
       var layer = layui.layer
@@ -215,44 +375,34 @@
         var latestVersion = "{{ latest_version }}";
         var showNotification = "{{ show_notification }}";
 
-        if (currentVersion !== latestVersion ) {
+        // 只有当本地版本低于GitHub版本时才显示更新提示
+        if (latestVersion && compareVersions(currentVersion, latestVersion) < 0) {
           // 检查是否已经显示过更新提示
           if (!localStorage.getItem('versionUpdateShown')) {
-              Swal.fire({
-                title: '检测到新版本！',
-                html: '当前最新的版本是：<span style="color: #1e9fff;">v' + latestVersion + '</span>，点击前往升级。',
-                icon: 'info',
-                timer: 5000,
-                timerProgressBar: true,
-                showCancelButton: true,
-                confirmButtonText: '前往升级',
-                cancelButtonText: '暂不升级',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                width: 300,  // 设置弹出框的宽度
-                height: 100,
-                padding: '2em',  // 设置弹出框的内边距
-                customClass: {
-                    popup: 'swal2-popup swal2-modal swal2-icon-info swal2-show',
-                    confirmButton: 'swal2-confirm',
-                    cancelButton: 'swal2-cancel'
-                },
-                position: 'bottom-start'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'https://github.com/llody55/udocker';
-                }
-            });
-
-             // 设置标志，表示已经显示过更新提示
-             //localStorage.setItem('versionUpdateShown', 'true');
-
-          }else{
-            console.log("已弹出，开始静默")
+            // 延迟显示，让页面先加载完成
+            setTimeout(function() {
+              var notification = document.getElementById('versionUpdateNotification');
+              notification.classList.add('show');
+            }, 1000);
           }
-            
         }
       });
     })
+
+    function dismissUpdateNotification() {
+      var notification = document.getElementById('versionUpdateNotification');
+      notification.classList.remove('show');
+      notification.classList.add('hide');
+      // 等待动画完成后再完全隐藏
+      setTimeout(function() {
+        notification.style.display = 'none';
+      }, 400);
+      // 设置标志，表示已经显示过更新提示
+      localStorage.setItem('versionUpdateShown', 'true');
+    }
+
+    function goToUpdate() {
+      window.location.href = 'https://github.com/llody55/udocker';
+    }
   </script>
   {% endblock %}
